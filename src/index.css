@@ -1576,7 +1576,7 @@ h1 em {
 .results-heading {
   position: absolute;
   z-index: 10;
-  top: clamp(30px, 4.4vh, 48px);
+  top: clamp(60px, 10vh, 85px); 
   left: 50%;
   text-align: center;
   transform: translateX(-50%);
