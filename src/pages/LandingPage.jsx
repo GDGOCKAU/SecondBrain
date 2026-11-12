@@ -41,7 +41,7 @@ export default function LandingPage() {
       <section className="hero-layout pt-24">
         <div className="brand-stage">
           <BrainMark />
-          <div className="title-block mt-20">
+          <div className="title-block mt-8">
             <p className="eyebrow">
               <span /> THINK FAST. PLAY SMART.
             </p>

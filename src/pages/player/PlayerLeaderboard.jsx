@@ -62,7 +62,7 @@ export default function PlayerLeaderboard() {
           </div>
         </div>
 
-        {/* Full Standings Panel (Shows Ranks #01 through #08) */}
+        {/* Full Standings Panel */}
         <aside className="standings-panel !m-0 !h-auto !w-full" aria-labelledby="mobile-standings-title">
           <div className="panel-glow" />
           <div className="standings-heading">
@@ -84,7 +84,7 @@ export default function PlayerLeaderboard() {
               return (
                 <div
                   key={player.id}
-                  className={`standing-row px-2 rounded-xl ${
+                  className={`standing-row px-2 rounded-xl items-center ${
                     isMe ? "bg-[#41d7ff]/[0.08]" : ""
                   }`}
                 >
@@ -113,9 +113,7 @@ export default function PlayerLeaderboard() {
                     </small>
                   </div>
 
-                  <span />
-
-                  <b className={player.rank === 1 ? "!text-[#ffe054]" : ""}>
+                  <b className={`text-right ${player.rank === 1 ? "!text-[#ffe054]" : ""}`}>
                     {player.score.toLocaleString()}
                   </b>
                 </div>

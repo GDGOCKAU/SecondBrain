@@ -25,7 +25,8 @@
 .app-shell {
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto; 
   isolation: isolate;
   background:
     radial-gradient(circle at 19% 47%, rgba(255, 36, 82, 0.08), transparent 28%),
@@ -147,12 +148,13 @@
 
 .hero-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(420px, 0.92fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.92fr);
   align-items: center;
   width: min(1500px, 100%);
-  min-height: calc(100vh - 160px);
+  min-height: calc(100vh - 80px);
   margin: 0 auto;
-  padding: 26px clamp(32px, 5.5vw, 96px) 68px;
+  /* Extra top padding so the fixed header never touches the brain */
+  padding: clamp(88px, 10vh, 120px) clamp(32px, 5.5vw, 96px) 80px;
 }
 
 .brand-stage {
@@ -165,9 +167,11 @@
 
 .brain-wrap {
   position: relative;
-  width: min(34vw, 470px);
+  /* Scales with both viewport width (vw) AND height (vh) so wide monitors don't oversize it */
+  width: min(32vw, 38vh, 430px);
   aspect-ratio: 1.15;
-  margin: -28px 0 -64px 2%;
+  /* Removed the -28px top margin so it sits lower on all monitors */
+  margin: 10px 0 -44px 2%;
 }
 
 .brain-svg {
@@ -1515,7 +1519,8 @@ h1 em {
 .results-page {
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   isolation: isolate;
   background:
     radial-gradient(circle at 50% 51%, rgba(248, 222, 53, 0.045), transparent 22%),
@@ -2201,7 +2206,8 @@ h1 em {
 .leaderboard-page {
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   isolation: isolate;
   background:
     radial-gradient(circle at 35% 54%, rgba(49, 209, 255, 0.085), transparent 28%),
@@ -2290,7 +2296,7 @@ h1 em {
   align-items: center;
   min-width: 0;
   flex-direction: column;
-  padding: clamp(32px, 4vh, 50px) 25px 95px;
+  padding: clamp(44px, 5.5vh, 68px) 25px 105px;
 }
 
 .winner-heading {
@@ -2345,8 +2351,8 @@ h1 em {
   align-items: flex-end;
   justify-content: center;
   width: min(100%, 840px);
-  height: clamp(440px, 53vh, 530px);
-  margin-top: -12px;
+  height: clamp(430px, 50vh, 510px);
+  margin-top: 38px;
   perspective: 1100px;
 }
 
@@ -2431,7 +2437,8 @@ h1 em {
   display: flex;
   align-items: center;
   flex-direction: column;
-  margin-bottom: -4px;
+  /* Changed from -4px to 14px so the PTS text sits cleanly above the podium box */
+  margin-bottom: 14px;
   animation: winnerIn 0.6s cubic-bezier(0.17, 0.8, 0.27, 1.15) both;
 }
 
@@ -2508,11 +2515,11 @@ h1 em {
 }
 
 .winner-name span {
-  margin-top: 2px;
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 7px;
+  margin-top: 5px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
 }
 
 .podium-block {
@@ -2546,11 +2553,14 @@ h1 em {
 }
 
 .third .podium-block {
-  height: clamp(70px, 9vh, 90px);
+  /* Increased slightly so 3 and THIRD PLACE fit comfortably */
+  height: clamp(82px, 10.5vh, 102px);
+  justify-content: center;
+  padding-bottom: 6px;
 }
 
 .place-number {
-  margin-top: 10px;
+  margin-top: 8px;
   color: transparent;
   font-family: "Syne", sans-serif;
   font-size: clamp(35px, 4vw, 60px);
@@ -2563,6 +2573,12 @@ h1 em {
   color: rgba(255, 221, 58, 0.82);
   -webkit-text-stroke: 0;
   text-shadow: 0 0 20px rgba(255, 221, 58, 0.22);
+}
+
+.third .place-number {
+  /* Pulls the 3 higher and scales it to fit the shorter block */
+  margin-top: 0;
+  font-size: clamp(30px, 3.2vw, 46px);
 }
 
 .podium-block small {
@@ -2669,7 +2685,9 @@ h1 em {
 .standings-panel {
   position: relative;
   align-self: center;
-  height: min(720px, calc(100vh - 112px));
+  height: min(700px, calc(100vh - 130px));
+  /* Adds top margin so "The final scores" panel sits lower as well */
+  margin-top: 24px;
   margin-right: clamp(22px, 3vw, 48px);
   padding: clamp(26px, 3vw, 40px);
   overflow: hidden;
@@ -2681,7 +2699,6 @@ h1 em {
     inset 0 1px 0 rgba(255, 255, 255, 0.055);
   backdrop-filter: blur(24px);
 }
-
 .panel-glow {
   position: absolute;
   width: 240px;
