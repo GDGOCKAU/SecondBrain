@@ -7,7 +7,7 @@ import { useGame } from "../../context/GameContext";
 export default function AvatarSelection() {
   const navigate = useNavigate();
   const { registerPlayer } = useGame();
-  const [selectedId, setSelectedId] = useState("blob");
+  const [selectedId, setSelectedId] = useState(AVATARS[0].id);
   const [nickname, setNickname] = useState("");
 
   const selected = AVATARS.find((a) => a.id === selectedId) ?? AVATARS[0];
@@ -48,7 +48,8 @@ export default function AvatarSelection() {
                 <button
                   key={avatar.id}
                   type="button"
-                  className={`relative flex flex-col items-center justify-center p-4 aspect-square rounded-2xl border transition-all cursor-pointer ${
+                  aria-label={`Select avatar ${avatar.id}`}
+                  className={`relative flex items-center justify-center p-4 aspect-square rounded-2xl border transition-all cursor-pointer ${
                     isSelected
                       ? "border-[#44d8ff] bg-[rgba(26,40,61,0.94)] shadow-[0_0_20px_rgba(73,215,255,0.4)] scale-105"
                       : "border-white/10 bg-white/5 hover:bg-white/10"
@@ -56,10 +57,7 @@ export default function AvatarSelection() {
                   onClick={() => setSelectedId(avatar.id)}
                 >
                   <span className="w-24 h-24 flex items-center justify-center transition-transform">
-                    <PlayerAvatar player={{ avatar: avatar.id }} className="w-full h-full overflow-visible" />
-                  </span>
-                  <span className={`text-[9px] font-bold tracking-widest uppercase mt-3 ${isSelected ? "text-[#8ceaff]" : "text-white/60"}`}>
-                    {avatar.name}
+                    <PlayerAvatar player={{ avatar: avatar.id }} className="w-full h-full" />
                   </span>
                   {isSelected && (
                     <span className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-[#4cddff] text-[#07141a] text-[9px] font-black shadow-[0_0_10px_rgba(76,221,255,0.7)]">
@@ -81,8 +79,8 @@ export default function AvatarSelection() {
           <div className="h-[180px] w-full flex items-center justify-center relative mb-6">
             <div className="absolute w-[80%] aspect-square rounded-full border border-white/10" />
             <div className="absolute w-[60%] aspect-square rounded-full border border-[#3ad6ff]/20" />
-            <div className="w-[140px] z-10 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
-              <PlayerAvatar player={{ avatar: selected.id }} className="w-full h-full overflow-visible" />
+            <div className="w-[140px] h-[140px] z-10 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
+              <PlayerAvatar player={{ avatar: selected.id }} className="w-full h-full" />
             </div>
           </div>
 
