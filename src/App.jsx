@@ -1,9 +1,13 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Route } from "react-router-dom";
+import AnimatedRoutes from "./components/AnimatedRoutes";
 import { GameProvider } from "./context/GameContext";
+import NetworkBackground from "./components/NetworkBackground";
+import { SettingsProvider } from "./context/SettingsContext";
 import LandingPage from "./pages/LandingPage";
 import QuestionPage from "./pages/QuestionPage";
 import ResultsPage from "./pages/ResultsPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
+import QuestionSetsPage from "./pages/QuestionSetsPage";
 import PlayerLandingPage from "./pages/player/PlayerLandingPage";
 import AvatarSelection from "./pages/player/AvatarSelection";
 import PlayerPage from "./pages/player/PlayerPage";
@@ -24,9 +28,12 @@ function ResponsiveLanding() {
 
 export default function App() {
   return (
+    <SettingsProvider>
     <GameProvider>
       <BrowserRouter>
-        <Routes>
+        <NetworkBackground />
+        <div className="relative z-10">
+        <AnimatedRoutes>
           <Route path="/" element={<ResponsiveLanding />} />
           <Route path="/join" element={<AvatarSelection />} />
           <Route path="/avatar" element={<AvatarSelection />} />
@@ -35,8 +42,11 @@ export default function App() {
           <Route path="/game" element={<QuestionPage />} />
           <Route path="/results" element={<ResultsPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
-        </Routes>
+          <Route path="/sets" element={<QuestionSetsPage />} />
+        </AnimatedRoutes>
+        </div>
       </BrowserRouter>
     </GameProvider>
+    </SettingsProvider>
   );
 }

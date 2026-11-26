@@ -1,127 +1,100 @@
 import Header from "../../components/Header";
 import PlayerAvatar from "../../components/PlayerAvatar";
+import ShareCard from "../../components/ShareCard";
+import { GoogleBar } from "../../components/Ui";
 import { useGame } from "../../context/GameContext";
+import { useSettings } from "../../context/SettingsContext";
+
+const BADGES = [
+  "bg-yellow-soft text-yellow-ink",
+  "bg-blue-soft text-action",
+  "bg-green-soft text-green-ink",
+];
 
 export default function PlayerLeaderboard() {
   const { game, myPlayer } = useGame();
+  const { t } = useSettings();
 
-  // Sort all players by score descending and assign 1-based ranks
   const rankedPlayers = [...game.players]
     .sort((a, b) => b.score - a.score)
-    .map((player, index) => ({
-      ...player,
-      rank: index + 1,
-    }));
+    .map((player, index) => ({ ...player, rank: index + 1 }));
 
-  const myRankedPlayer =
-    rankedPlayers.find((p) => p.id === myPlayer.id) || rankedPlayers[0];
-
-  const getRankBadgeStyle = (rank) => {
-    if (rank === 1) return "text-[#ffe054] border-[#ffe054]/40 bg-[#ffe054]/10";
-    if (rank === 2) return "text-[#5be0ff] border-[#5be0ff]/40 bg-[#5be0ff]/10";
-    if (rank === 3) return "text-[#63f294] border-[#63f294]/40 bg-[#63f294]/10";
-    return "text-white/40 border-white/10 bg-white/5";
-  };
+  const me = rankedPlayers.find((p) => p.id === myPlayer.id) || rankedPlayers[0];
 
   return (
-    <main className="leaderboard-page min-h-[100dvh] overflow-y-auto pb-10">
-      <div className="background-grid" />
-      <div className="color-haze haze-red" />
-      <div className="color-haze haze-blue" />
-      <div className="color-haze haze-green" />
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col">
+      <Header compact>
+        <span className="pill !px-3 !py-[5px] !text-xs bg-green-soft text-green-ink">
+          {t("gameOverShort")}
+        </span>
+      </Header>
 
-      <Header />
-
-      <div className="w-full max-w-md mx-auto px-4 pt-24 flex flex-col gap-5">
-        {/* Player's Own Final Rank Highlight Card */}
-        <div className="flex items-center justify-between p-4 rounded-2xl border border-[#41d7ff]/35 bg-white/[0.04] backdrop-blur-md shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-14 h-14 rounded-2xl p-1.5 border border-[#41d7ff]/50 bg-black/30 flex items-center justify-center shrink-0">
-              <PlayerAvatar player={myRankedPlayer} className="player-avatar" />
-            </div>
-            <div className="min-w-0">
-              <span className="block text-[8px] font-bold tracking-[0.2em] text-[#5be0ff] uppercase">
-                YOUR FINAL RANK
-              </span>
-              <strong className="font-['Syne'] text-lg text-white truncate block">
-                {myRankedPlayer.name}
-              </strong>
-              <span className="text-[10px] font-bold text-[#f7dc4b]">
-                {myRankedPlayer.score.toLocaleString()} PTS
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center justify-center px-4 py-2 rounded-xl bg-black/50 border border-white/10 shrink-0">
-            <span className="text-[7px] font-bold tracking-[0.16em] text-white/40">
-              RANK
-            </span>
-            <strong className="font-['Syne'] text-2xl font-extrabold text-[#ffe054]">
-              #{myRankedPlayer.rank}
+      <main className="flex flex-1 flex-col gap-4 p-5">
+        <section className="relative flex items-center gap-3.5 overflow-hidden rounded-card border border-line bg-surface p-5">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-12 -top-16 size-[180px] rounded-full bg-g-blue opacity-[.16] blur-[60px]"
+          />
+          <span className="relative size-[72px] shrink-0 rounded-[30%] bg-blue-soft">
+            <PlayerAvatar player={me} />
+          </span>
+          <div className="relative min-w-0 flex-1">
+            <span className="text-xs font-semibold text-action">{t("yourFinalRank")}</span>
+            <strong className="block truncate text-[22px] tracking-tight" dir="auto">
+              {me.name}
             </strong>
+            <span className="text-sm text-muted">{t("pts", { n: me.score.toLocaleString() })}</span>
           </div>
-        </div>
-
-        {/* Full Standings Panel */}
-        <aside className="standings-panel !m-0 !h-auto !w-full" aria-labelledby="mobile-standings-title">
-          <div className="panel-glow" />
-          <div className="standings-heading">
-            <div>
-              <p>FINAL STANDINGS</p>
-              <h2 id="mobile-standings-title">All Player Ranks</h2>
-            </div>
-            <span>{rankedPlayers.length} PLAYERS</span>
+          <div className="relative flex size-[72px] shrink-0 flex-col items-center justify-center rounded-panel bg-blue-soft text-action">
+            <span className="text-[11px] font-semibold">{t("rank")}</span>
+            <strong className="text-[32px] font-bold leading-none">#{me.rank}</strong>
           </div>
+        </section>
 
-          <div className="standing-labels">
-            <span>RANK & PLAYER</span>
-            <span>FINAL SCORE</span>
+        <section
+          aria-labelledby="standings-title"
+          className="flex flex-1 flex-col gap-2.5 rounded-card border border-line bg-surface p-4"
+        >
+          <div className="flex items-center justify-between px-1">
+            <h2 id="standings-title" className="m-0 text-[17px] font-semibold">
+              {t("allPlayers")}
+            </h2>
+            <span className="text-xs text-muted">{t("playersCount", { n: rankedPlayers.length })}</span>
           </div>
-
-          <div className="standings-list !h-auto !max-h-none divide-y divide-white/5">
+          <ol className="m-0 flex list-none flex-col gap-1 p-0">
             {rankedPlayers.map((player) => {
-              const isMe = player.id === myPlayer.id;
+              const isMe = player.id === me.id;
               return (
-                <div
+                <li
                   key={player.id}
-                  className={`standing-row px-2 rounded-xl items-center ${
-                    isMe ? "bg-[#41d7ff]/[0.08]" : ""
+                  className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 ${
+                    isMe ? "bg-blue-soft" : ""
                   }`}
                 >
                   <span
-                    className={`w-6 h-6 rounded-md border flex items-center justify-center font-['Syne'] text-[10px] font-bold ${getRankBadgeStyle(
-                      player.rank
-                    )}`}
+                    className={`flex size-[26px] items-center justify-center rounded-lg text-xs font-bold ${
+                      BADGES[player.rank - 1] || "bg-chip text-muted"
+                    }`}
                   >
-                    {String(player.rank).padStart(2, "0")}
+                    {player.rank}
                   </span>
-
-                  <div className="row-avatar">
-                    <PlayerAvatar player={player} className="player-avatar" />
-                  </div>
-
-                  <div className="row-name">
-                    <strong className={isMe ? "!text-[#72e6ff]" : ""}>
-                      {player.name} {isMe && "(YOU)"}
-                    </strong>
-                    <small>
-                      {player.rank === 1
-                        ? "CHAMPION 👑"
-                        : player.rank <= 3
-                        ? "TOP 3 PODIUM"
-                        : "GREAT GAME"}
-                    </small>
-                  </div>
-
-                  <b className={`text-right ${player.rank === 1 ? "!text-[#ffe054]" : ""}`}>
-                    {player.score.toLocaleString()}
-                  </b>
-                </div>
+                  <span className="size-8 shrink-0">
+                    <PlayerAvatar player={player} />
+                  </span>
+                  <strong className="min-w-0 flex-1 truncate text-sm font-medium" dir="auto">
+                    {player.name}
+                    {isMe && ` (${t("you")})`}
+                  </strong>
+                  <b className="text-sm tabular-nums">{player.score.toLocaleString()}</b>
+                </li>
               );
             })}
-          </div>
-        </aside>
-      </div>
-    </main>
+          </ol>
+        </section>
+
+        <ShareCard player={me} rank={me.rank} />
+      </main>
+      <GoogleBar />
+    </div>
   );
 }

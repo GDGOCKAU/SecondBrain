@@ -1,22 +1,34 @@
 import { Link } from "react-router-dom";
 import gdgLogo from "../assets/gdg-logo.png";
+import { useSettings } from "../context/SettingsContext";
+import SettingsControls from "./SettingsControls";
 
-export default function Header() {
+export default function Header({ children, showOrg = false, compact = false }) {
+  const { t } = useSettings();
   return (
-    <header className="topbar fixed top-0 w-full z-50 bg-[#090914]/90 backdrop-blur-md">
-      <Link className="mini-brand" to="/" aria-label="Second Brain home">
-        <div className="w-8 h-8 flex items-center justify-center rounded-md overflow-hidden">
-          <img
-            src={gdgLogo}
-            alt="Second Brain Logo"
-          />
-        </div>
-        GDG KAU
+    <header
+      className={`sticky top-0 z-40 flex items-center justify-between gap-2 border-b border-line bg-surface/80 backdrop-blur-xl ${
+        compact ? "h-14 px-4" : "h-16 px-5 md:px-8"
+      }`}
+    >
+      <Link className="flex min-w-0 items-center gap-3" to="/" aria-label={t("home")}>
+        <img src={gdgLogo} alt="GDG logo" className={compact ? "w-9 shrink-0" : "w-10 shrink-0"} />
+        {showOrg ? (
+          <span className="flex flex-col leading-tight">
+            <strong className="text-[15px] font-bold">GDG KAU</strong>
+            <span className="hidden text-[11px] text-muted sm:block">King Abdulaziz University</span>
+          </span>
+        ) : (
+          <strong
+            className={`font-semibold ${compact ? "hidden text-sm min-[400px]:block" : "text-[15px]"}`}
+          >
+            MindSync
+          </strong>
+        )}
       </Link>
-
-      <div className="live-badge">
-        <span />
-        LIVE & READY
+      <div className={`flex items-center ${compact ? "gap-1.5" : "gap-2.5"}`}>
+        {children}
+        <SettingsControls compact={compact} />
       </div>
     </header>
   );

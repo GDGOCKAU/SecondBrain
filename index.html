@@ -3,10 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>second-brain</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>MindSync · GDG KAU</title>
   </head>
   <body>
+    <script>
+      try {
+        var d = document.documentElement;
+        if (localStorage.getItem("mindsync_theme") === "dark") d.classList.add("dark");
+        if (localStorage.getItem("mindsync_lang") === "ar") { d.lang = "ar"; d.dir = "rtl"; }
+      } catch (e) {}
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

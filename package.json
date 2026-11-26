@@ -1,5 +1,5 @@
 {
-  "name": "second-brain",
+  "name": "mindsync",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,9 +11,10 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.5",
+    "jsqr": "^1.4.0",
+    "qrcode-generator": "^2.0.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "react-qr-code": "^2.2.0",
     "react-router-dom": "^7.18.5",
     "tailwindcss": "^4.3.5"
   },

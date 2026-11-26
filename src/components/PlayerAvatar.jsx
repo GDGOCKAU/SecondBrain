@@ -56,9 +56,13 @@ const AVATAR_MAP = {
   monster: a8,
 };
 
-export default function PlayerAvatar({ player, className = "player-avatar" }) {
+export function getAvatarSrc(player) {
   const avatarKey = typeof player === "string" ? player : player?.avatar;
-  const imgSrc = AVATAR_MAP[avatarKey] || a1;
+  return AVATAR_MAP[avatarKey] || a1;
+}
+
+export default function PlayerAvatar({ player, className = "player-avatar" }) {
+  const imgSrc = getAvatarSrc(player);
 
   return (
     <img

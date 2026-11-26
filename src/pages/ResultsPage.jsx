@@ -1,104 +1,38 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import PlayerAvatar from "../components/PlayerAvatar";
+import { ArrowIcon } from "../components/Icons";
+import MatchMap, { GROUP_STYLES } from "../components/MatchMap";
+import { GoogleBar } from "../components/Ui";
 import { normalizeText, useGame } from "../context/GameContext";
+import { useSettings } from "../context/SettingsContext";
 
-function buildBubblesFromPlayers(allPlayers) {
+function groupAnswers(players) {
   const groups = new Map();
-  allPlayers.forEach((player) => {
+  players.forEach((player) => {
     const raw = player.roundAnswer?.trim();
     if (!raw) return;
     const key = normalizeText(raw);
-    if (!groups.has(key)) {
-      groups.set(key, { answer: raw, players: [] });
-    }
-    groups.get(key).players.push(player);
+    if (!groups.has(key)) groups.set(key, { answer: raw, spellings: new Set(), players: [] });
+    const group = groups.get(key);
+    group.spellings.add(raw);
+    group.players.push(player);
   });
 
-  const sorted = Array.from(groups.values()).sort(
-    (a, b) => b.players.length - a.players.length
-  );
-
-  const layoutSpecs = [
-    { tone: "yellow", size: "hero", position: "center", delay: "0ms" },
-    { tone: "blue", size: "large", position: "left-mid", delay: "120ms" },
-    { tone: "red", size: "medium", position: "right-high", delay: "200ms" },
-    { tone: "green", size: "medium", position: "right-low", delay: "280ms" },
-    { tone: "red", size: "small", position: "left-low", delay: "360ms" },
-  ];
-
-  return sorted.slice(0, 5).map((group, index) => {
-    const spec = layoutSpecs[index] || layoutSpecs[layoutSpecs.length - 1];
-    const count = group.players.length;
-    return {
-      answer: group.answer,
-      count,
-      points: Math.max(0, count - 1),
-      tone: spec.tone,
-      size: index === 0 ? "hero" : spec.size,
-      position: spec.position,
-      players: group.players,
-      delay: spec.delay,
-    };
-  });
-}
-
-function AnswerBubbleCard({ bubble }) {
-  const maxVisibleAvatars = 5;
-  const visiblePlayers = bubble.players.slice(0, maxVisibleAvatars);
-  const extraCount = Math.max(0, bubble.players.length - maxVisibleAvatars);
-
-  return (
-    <article
-      className={`answer-bubble ${bubble.tone} ${bubble.size} ${bubble.position}`}
-      style={{ "--delay": bubble.delay }}
-      tabIndex={0}
-    >
-      <div className="bubble-surface">
-        {bubble.size === "hero" && <span className="popular-label">MOST POPULAR</span>}
-        <h2 dir="auto">{bubble.answer}</h2>
-        <p>
-          {bubble.count} {bubble.count === 1 ? "PLAYER" : "PLAYERS"} MATCHED
-        </p>
-
-        <div className="bubble-players">
-          {visiblePlayers.map((player) => (
-            <div
-              className="bubble-avatar"
-              key={player.id}
-              title={`${player.name} (${player.score} PTS)`}
-            >
-              <PlayerAvatar player={player} className="player-avatar mini-avatar" />
-              {player.id === "you" && <span>YOU</span>}
-            </div>
-          ))}
-          {extraCount > 0 && (
-            <div
-              className="bubble-avatar !bg-[#15162c] !border-[#5be0ff]/40 text-[#5be0ff] text-[10px] font-extrabold"
-              title={`+${extraCount} more players`}
-            >
-              +{extraCount}
-            </div>
-          )}
-        </div>
-
-        <div className="points-badge">
-          +{bubble.points} {bubble.points === 1 ? "POINT" : "POINTS"}
-        </div>
-      </div>
-    </article>
-  );
+  return Array.from(groups.values())
+    .map((g) => ({ ...g, count: g.players.length, points: Math.max(0, g.players.length - 1) }))
+    .sort((a, b) => b.count - a.count);
 }
 
 export default function ResultsPage() {
   const navigate = useNavigate();
-  const { game, myPlayer, nextRound } = useGame();
-
-  const bubbles = buildBubblesFromPlayers(game.players);
-  const topBubble = bubbles[0];
-
+  const { game, currentQuestion, nextRound } = useGame();
+  const { t, tn } = useSettings();
   const [nextRoundIn, setNextRoundIn] = useState(12);
+
+  const groups = groupAnswers(game.players);
+  const unanswered = game.players.filter((p) => !p.roundAnswer?.trim());
+  const isLastRound = game.currentRound >= game.totalRounds;
 
   useEffect(() => {
     if (nextRoundIn <= 0) return;
@@ -109,9 +43,8 @@ export default function ResultsPage() {
     return () => window.clearInterval(timer);
   }, [nextRoundIn]);
 
-
-const handleAdvance = () => {
-    if (game.currentRound >= game.totalRounds) {
+  const handleAdvance = () => {
+    if (isLastRound) {
       navigate("/leaderboard");
       return;
     }
@@ -119,73 +52,108 @@ const handleAdvance = () => {
     navigate("/game");
   };
 
+  const pointsLabel = (points) =>
+    points > 0 ? tn("ptEach", "ptsEach", points) : t("noMatch");
+
   return (
-    <main className="results-page game-page">
-      <div className="results-grid game-grid" />
-      <div className="haze haze-red ambient ambient-red" />
-      <div className="haze haze-blue ambient ambient-blue" />
-      <div className="haze haze-green ambient ambient-green" />
+    <div className="flex min-h-screen flex-col">
+      <Header>
+        <span className="pill bg-blue-soft text-action">{t("room", { code: game.roomCode })}</span>
+        <span className="pill border border-line bg-surface text-muted">
+          {t("questionOf", { n: game.currentRound, m: game.totalRounds })}
+        </span>
+      </Header>
 
-      <Header />
-
-      <section className="results-canvas pt-[76px]" aria-labelledby="results-title">
-        <div className="results-heading">
-          <p>
-            <span /> ROUND {String(game.currentRound).padStart(2, "0")} BRAINWAVE
-          </p>
-          <h1 id="results-title">Great minds think alike.</h1>
-          <div className="answer-key">
-            <span>QUESTION {game.currentRound} OF {game.totalRounds}</span>
-            <i />
-            <span>{game.players.length} PLAYERS</span>
-            <i />
-            <span>{bubbles.length} UNIQUE GUESSES</span>
-          </div>
-        </div>
-
-        <div className="bubble-field">
-          <div className="orbit orbit-one" />
-          <div className="orbit orbit-two" />
-          <span className="floating-dot dot-yellow" />
-          <span className="floating-dot dot-red" />
-          <span className="floating-dot dot-green" />
-          <span className="floating-dot dot-blue" />
-          {bubbles.map((bubble) => (
-            <AnswerBubbleCard bubble={bubble} key={bubble.answer} />
-          ))}
-        </div>
-
-        <div className="result-footer">
-          <div className="correct-answer">
-            <span className="check">★</span>
-            <div>
-              <small>TOP MATCHED ANSWER</small>
-              <strong dir="auto">{topBubble?.answer?.toUpperCase() || "—"}</strong>
-            </div>
-          </div>
-
-          <div className="result-legend">
-            <span>
-              <i className="legend-dot yellow" /> {topBubble?.count || 0} MATCHED
+      <main
+        aria-labelledby="results-title"
+        className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 px-8 py-10"
+      >
+        <div className="flex flex-wrap items-end justify-between gap-5">
+          <div className="flex flex-col gap-2.5">
+            <span className="inline-flex items-center gap-2.5 text-[13px] font-semibold text-muted">
+              <i className="h-[3px] w-6 rounded-sm bg-g-yellow" />
+              {t("roundResults", { n: String(game.currentRound).padStart(2, "0") })}
             </span>
-            <span>
-              <i className="legend-dot blue" /> YOUR SCORE: {myPlayer.score} PTS
-            </span>
+            <h1
+              id="results-title"
+              className="m-0 text-[clamp(2rem,4vw,3rem)] font-bold leading-[1.08] tracking-[-0.04em]"
+            >
+              {t("greatMinds")}
+            </h1>
+            <p className="m-0 text-base text-muted">
+              “{`${currentQuestion.baseText} ${currentQuestion.highlightText}`.trim()}” · {t("eachMatch")}
+            </p>
           </div>
-
-          <button type="button" onClick={handleAdvance} className="cursor-pointer">
-            <span>
-              {game.currentRound >= game.totalRounds ? "FINISH GAME" : "NEXT ROUND"}
-            </span>
-            <small>
-              {game.currentRound >= game.totalRounds
-                ? "FINAL SCORES"
-                : `ROUND ${String(game.currentRound + 1).padStart(2, "0")} (${nextRoundIn}s)`}
-            </small>
-            <i>→</i>
+          <button type="button" className="btn-primary h-12" onClick={handleAdvance}>
+            {isLastRound ? t("finishGame") : t("nextQuestionIn", { n: nextRoundIn })} <ArrowIcon />
           </button>
         </div>
-      </section>
-    </main>
+
+        {groups.length === 0 ? (
+          <div className="card p-10 text-center text-muted">{t("nobody")}</div>
+        ) : (
+          <div className="flex flex-wrap items-start gap-5">
+            <section
+              aria-label={t("matchMap")}
+              className="card relative min-w-0 flex-[2_1_480px] overflow-hidden p-4 md:p-6"
+            >
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-14 -top-20 size-72 rounded-full bg-g-yellow opacity-[.14] blur-[70px]"
+              />
+              <div className="relative">
+                <MatchMap groups={groups} />
+              </div>
+            </section>
+
+            <section className="card flex min-w-0 flex-[1_1_300px] flex-col gap-3 p-5">
+              <ol className="m-0 flex list-none flex-col gap-2 p-0">
+                {groups.map((g, i) => {
+                  const style = GROUP_STYLES[i % GROUP_STYLES.length];
+                  const also = [...g.spellings].filter((s) => s !== g.answer);
+                  return (
+                    <li key={g.answer} className="flex items-start gap-3 rounded-[14px] bg-field p-3">
+                      <i className={`mt-1.5 size-2.5 shrink-0 rounded-full ${style.bar}`} />
+                      <div className="min-w-0 flex-1">
+                        <strong className="block break-words text-lg" dir="auto">
+                          {g.answer}
+                        </strong>
+                        <span className="text-[13px] text-muted">
+                          {tn("playerCountOne", "playerCountMany", g.count)} ·{" "}
+                          {g.players.map((p) => p.name).join(", ")}
+                        </span>
+                        {also.length > 0 && (
+                          <span className="block text-xs text-muted" dir="auto">
+                            {t("alsoWritten", { list: also.map((s) => `“${s}”`).join(", ") })}
+                          </span>
+                        )}
+                        {g.points === 0 && (
+                          <span className="block text-xs text-muted">{t("awardHost")}</span>
+                        )}
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          g.points > 0 ? "bg-green-soft text-green-ink" : "bg-chip text-muted"
+                        }`}
+                      >
+                        {pointsLabel(g.points)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+
+              {unanswered.length > 0 && (
+                <p className="m-0 rounded-full bg-chip px-3.5 py-1.5 text-sm font-medium text-muted">
+                  {t("noAnswer")} · {unanswered.map((p) => p.name).join(", ")}
+                </p>
+              )}
+              <p className="m-0 text-[13px] text-muted">{t("spellingNote")}</p>
+            </section>
+          </div>
+        )}
+      </main>
+      <GoogleBar />
+    </div>
   );
 }

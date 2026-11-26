@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { useSettings } from "./SettingsContext";
+import { DEFAULT_SET } from "../questionSets";
 
 const GameContext = createContext(null);
 const STORAGE_KEY = "sb_room_state_v1";
@@ -28,12 +30,6 @@ export function areAnswersMatching(ansA, ansB) {
 // Replace this initial mock state
 // with your database room & players subscription!
 // ---------------------------------------------------------
-const initialQuestions = [
-  { category: "SPACE & SCIENCE", baseText: "What is the only planet that rotates", highlightText: "clockwise?" },
-  { category: "POP CULTURE", baseText: "Name something people always forget at", highlightText: "home?" },
-  { category: "FOOD & DRINK", baseText: "What is the best late-night", highlightText: "snack?" },
-];
-
 const initialPlayers = [
   { id: "p1", name: "Maya", score: 8, avatar: "cat", status: "answered", roundAnswer: "زهره", matchPoints: 0, hostBonus: 0 },
   { id: "p2", name: "Theo", score: 6, avatar: "robot", status: "answered", roundAnswer: "المريخ", matchPoints: 0, hostBonus: 0 },
@@ -60,7 +56,7 @@ function loadInitialState() {
     roundTime: 20,
     roundEndTime: Date.now() + 20 * 1000,
     roundEvaluated: false,
-    questions: initialQuestions,
+    questions: DEFAULT_SET.questions,
     players: initialPlayers,
   };
 }
@@ -142,10 +138,11 @@ export function GameProvider({ children }) {
   }, [timeLeft, game.roundEvaluated]);
 
   // 1. Host starts game from LobbyModal
-  const startGame = ({ roomCode, totalRounds, timeLimit }) => {
+  const startGame = ({ roomCode, totalRounds, timeLimit, questions }) => {
     updateGame((prev) => ({
       ...prev,
       roomCode: roomCode || prev.roomCode,
+      questions: questions?.length ? questions : prev.questions,
       currentRound: 1,
       totalRounds,
       roundTime: timeLimit,
@@ -220,9 +217,11 @@ export function GameProvider({ children }) {
     });
   };
 
+  const { lang } = useSettings();
+  const questionIndex = (game.currentRound - 1) % game.questions.length;
+  const baseQuestion = game.questions[questionIndex] || game.questions[0];
   const currentQuestion =
-    game.questions[(game.currentRound - 1) % game.questions.length] ||
-    game.questions[0];
+    lang === "ar" && baseQuestion?.ar ? { ...baseQuestion, ...baseQuestion.ar } : baseQuestion;
 
   const myPlayer =
     game.players.find((p) => p.id === "you") || game.players[0];
