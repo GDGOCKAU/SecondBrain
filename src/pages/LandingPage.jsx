@@ -5,11 +5,17 @@ import BrainMark from "../components/BrainMark";
 import { ArrowIcon, PlusIcon } from "../components/Icons";
 import LobbyModal from "../components/LobbyModal";
 
-export default function LandingPage() {
+function createRoomCode() {
+  return Math.random().toString(36).substring(2, 6).toUpperCase();
+}
+
+export default function LandingPage({ openHostLobby = false }) {
   const navigate = useNavigate();
   const [roomCode, setRoomCode] = useState("");
   const [message, setMessage] = useState("");
-  const [hostedCode, setHostedCode] = useState(null);
+  const [hostedCode, setHostedCode] = useState(() =>
+    openHostLobby ? createRoomCode() : null,
+  );
 
   const handleJoin = (event) => {
     event.preventDefault();
@@ -24,8 +30,7 @@ export default function LandingPage() {
   };
 
   const handleHost = () => {
-    const newCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-    setHostedCode(newCode);
+    setHostedCode(createRoomCode());
     setMessage("");
   };
 

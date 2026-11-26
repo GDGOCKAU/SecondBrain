@@ -28,6 +28,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<ResponsiveLanding />} />
+          <Route path="/admin" element={<LandingPage openHostLobby />} />
           <Route path="/join" element={<AvatarSelection />} />
           <Route path="/avatar" element={<AvatarSelection />} />
           <Route path="/player" element={<PlayerPage />} />
