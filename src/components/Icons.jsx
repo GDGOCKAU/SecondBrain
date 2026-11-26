@@ -41,3 +41,10 @@ export const ReplayIcon = () => (
     <path d="M3 3v5h5" />
   </svg>
 );
+
+export const HomeIcon = () => (
+  <svg {...base}>
+    <path d="M3 11l9-8 9 8" />
+    <path d="M5 10v10h5v-6h4v6h5V10" />
+  </svg>
+);

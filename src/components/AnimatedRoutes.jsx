@@ -42,7 +42,7 @@ function LinesOverlay({ onSwap, onDone }) {
     let frame;
     const t0 = performance.now();
     const step = (now) => {
-      const t = (now - t0) / DURATION;
+      const t = Math.max(0, (now - t0) / DURATION);
       const draw = Math.min(1, t / 0.5);
       const fade = t > 0.75 ? Math.max(0, 1 - (t - 0.75) / 0.25) : 1;
 
@@ -67,7 +67,7 @@ function LinesOverlay({ onSwap, onDone }) {
       pts.forEach((a) => {
         c.fillStyle = a.c;
         c.beginPath();
-        c.arc(a.x, a.y, 4 * Math.min(1, draw * 2), 0, Math.PI * 2);
+        c.arc(a.x, a.y, Math.max(0, 4 * Math.min(1, draw * 2)), 0, Math.PI * 2);
         c.fill();
       });
 

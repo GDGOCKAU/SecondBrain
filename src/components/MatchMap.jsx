@@ -25,7 +25,7 @@ function radiusFor(count) {
 }
 
 // Answers as bubbles; players link to the bubble they picked, and to each other when they matched.
-export default function MatchMap({ groups }) {
+export default function MatchMap({ groups, onSelect }) {
   const { t, tn } = useSettings();
   const [hover, setHover] = useState(-1);
   const shown = groups.slice(0, SLOTS.length);
@@ -52,7 +52,19 @@ export default function MatchMap({ groups }) {
       {bubbles.map(({ g, slot, r, people, style }, i) => (
         <g
           key={g.answer}
-          className="cursor-pointer transition-all duration-200"
+          className="cursor-pointer outline-none transition-all duration-200 focus-visible:[&>circle:first-of-type]:stroke-[4]"
+          role="button"
+          tabIndex={0}
+          aria-label={`${g.answer} · ${t("editPoints")}`}
+          onClick={() => onSelect?.(g.answer)}
+          onFocus={() => setHover(i)}
+          onBlur={() => setHover(-1)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onSelect?.(g.answer);
+            }
+          }}
           style={{
             opacity: hover === -1 || hover === i ? 1 : 0.28,
             transformOrigin: `${slot.x}px ${slot.y}px`,

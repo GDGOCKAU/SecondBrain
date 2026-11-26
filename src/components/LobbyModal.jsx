@@ -6,7 +6,6 @@ import StyledQr from "./StyledQr";
 import { SOFT_TINTS } from "./Ui";
 import { useGame } from "../context/GameContext";
 import { useSettings } from "../context/SettingsContext";
-import { loadAllSets, roundOptions } from "../questionSets";
 
 const TIME_OPTIONS = [15, 20, 30, 45];
 
@@ -40,31 +39,17 @@ function Segmented({ label, options, value, onChange, format }) {
 
 export default function LobbyModal({ roomCode, onClose }) {
   const navigate = useNavigate();
-  const { game, startGame } = useGame();
+  const { game, startGame, removePlayer } = useGame();
   const { t, tn } = useSettings();
-  const [sets] = useState(loadAllSets);
-  const [setId, setSetId] = useState(sets[0].id);
-  const [roundsPick, setRoundsPick] = useState(10);
   const [timeLimit, setTimeLimit] = useState(20);
 
   if (!roomCode) return null;
-
-  const selectedSet = sets.find((x) => x.id === setId) || sets[0];
-  const setName = (x) => (x.builtIn ? t("defaultSetName") : x.name || t("untitledSet"));
-  const options = roundOptions(selectedSet.questions.length);
-  const rounds = options.includes(roundsPick)
-    ? roundsPick
-    : options.includes(10)
-      ? 10
-      : options[options.length - 1];
-  const canStart = selectedSet.questions.length > 0;
 
   const joinUrl = `${window.location.origin}/avatar?code=${roomCode}`;
   const lobbyPlayers = game.players;
 
   const handleStart = () => {
-    if (!canStart) return;
-    startGame({ roomCode, totalRounds: rounds, timeLimit, questions: selectedSet.questions });
+    startGame({ roomCode, timeLimit, fresh: true });
     navigate("/game");
   };
 
@@ -114,58 +99,35 @@ export default function LobbyModal({ roomCode, onClose }) {
             </span>
           </div>
 
-          <ul className="m-0 grid max-h-[260px] min-h-[200px] list-none grid-cols-4 content-start gap-3 overflow-y-auto rounded-panel border border-line bg-field p-4 sm:grid-cols-5">
+          <ul className="m-0 grid max-h-[300px] min-h-[200px] list-none grid-cols-1 content-start gap-2 overflow-y-auto rounded-panel border border-line bg-field p-3 sm:grid-cols-2">
+            {lobbyPlayers.length === 0 && (
+              <li className="col-span-full py-8 text-center text-sm text-muted">{t("noPlayersYet")}</li>
+            )}
             {lobbyPlayers.map((p, i) => (
               <li
                 key={p.id}
-                className="flex flex-col items-center gap-2 rounded-2xl border border-line bg-surface p-3"
+                className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-2.5"
               >
-                <div className={`size-14 rounded-[30%] p-1.5 ${SOFT_TINTS[i % 4]}`}>
+                <div className={`size-11 shrink-0 rounded-[30%] p-1 ${SOFT_TINTS[i % 4]}`}>
                   <PlayerAvatar player={p} />
                 </div>
-                <span className="max-w-full truncate text-xs font-medium" dir="auto">
+                <span className="min-w-0 flex-1 break-words text-sm font-semibold" dir="auto">
                   {p.name}
                 </span>
+                <button
+                  type="button"
+                  aria-label={t("removePlayer", { name: p.name })}
+                  title={t("removePlayer", { name: p.name })}
+                  onClick={() => removePlayer(p.id)}
+                  className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-line bg-surface text-muted transition-colors hover:border-g-red hover:bg-red-soft hover:text-red-ink"
+                >
+                  <CloseIcon />
+                </button>
               </li>
             ))}
           </ul>
 
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <label htmlFor="question-set" className="text-[13px] font-medium text-muted">
-                {t("questionSet")}
-              </label>
-              <button
-                type="button"
-                onClick={() => navigate("/sets")}
-                className="cursor-pointer text-[13px] font-medium text-action hover:text-action-dark"
-              >
-                {t("manageSets")}
-              </button>
-            </div>
-            <select
-              id="question-set"
-              value={selectedSet.id}
-              onChange={(e) => setSetId(e.target.value)}
-              className="field h-11 cursor-pointer px-3.5 text-sm font-medium"
-            >
-              {sets.map((x) => (
-                <option key={x.id} value={x.id}>
-                  {t("setOption", { name: setName(x), n: x.questions.length })}
-                </option>
-              ))}
-            </select>
-            {!canStart && <p className="m-0 text-[13px] text-red-ink">{t("setEmptyHint")}</p>}
-          </div>
-
           <div className="flex gap-4">
-            <Segmented
-              label={t("rounds")}
-              options={options}
-              value={rounds}
-              onChange={setRoundsPick}
-              format={(n) => `${n}`}
-            />
             <Segmented
               label={t("timePer")}
               options={TIME_OPTIONS}
@@ -179,7 +141,6 @@ export default function LobbyModal({ roomCode, onClose }) {
             type="button"
             className="btn-primary mt-auto w-full"
             onClick={handleStart}
-            disabled={!canStart}
           >
             {t("startGame")} <ArrowIcon />
           </button>

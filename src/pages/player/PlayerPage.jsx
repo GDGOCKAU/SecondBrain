@@ -17,17 +17,18 @@ export default function PlayerPage() {
   useEffect(() => {
     setAnswer(myPlayer.roundAnswer || "");
     setSubmitted(Boolean(myPlayer.roundAnswer));
-  }, [game.roundEndTime]);
+  }, [game.roundEndTime, game.currentRound]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (!answer.trim() || submitted || timeLeft === 0) return;
+    if (!answer.trim() || submitted || timeLeft === 0 || waiting) return;
 
     setSubmitted(true);
     submitAnswer(answer);
   };
 
-  const isRoundOver = timeLeft === 0;
+  const isRoundOver = timeLeft === 0 && game.roundStarted !== false;
+  const waiting = game.roundStarted === false;
 
   return (
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col">
@@ -46,28 +47,44 @@ export default function PlayerPage() {
           </span>
         </span>
         <span className="pill !px-2.5 !py-[5px] !text-xs border border-line bg-surface text-muted">
-          {t("qShort", { n: game.currentRound, m: game.totalRounds })}
+          {game.totalRounds > 0
+            ? t("qShort", { n: game.currentRound, m: game.totalRounds })
+            : t("questionN", { n: game.currentRound })}
         </span>
       </Header>
 
       <main className="flex flex-1 flex-col items-center gap-5 px-5 pb-5 pt-6 text-center">
         <CountdownRing timeLeft={timeLeft} total={game.roundTime} size={120} />
 
-        {currentQuestion.category && (
+        {waiting && (
+          <div role="status" className="mt-auto flex w-full flex-1 flex-col items-center justify-center gap-3">
+            <span className="pill bg-blue-soft font-semibold text-action">
+              {game.totalRounds > 0
+                ? t("qShort", { n: game.currentRound, m: game.totalRounds })
+                : t("questionN", { n: game.currentRound })}
+            </span>
+            <strong className="text-[28px] leading-tight">{t("getReady")}</strong>
+            <p className="m-0 text-sm text-muted">{t("waitingStart")}</p>
+          </div>
+        )}
+
+        {!waiting && currentQuestion.category && (
           <span className="pill !px-3 !py-[5px] !text-xs bg-yellow-soft font-semibold text-yellow-ink">
             <i className="size-[7px] rounded-full bg-g-yellow" />
             {currentQuestion.category}
           </span>
         )}
 
-        <h1 className="m-0 text-balance text-[28px] font-bold leading-[1.15] tracking-[-0.035em]">
-          {currentQuestion.baseText}{" "}
-          <span className="text-g-blue">{currentQuestion.highlightText}</span>
-        </h1>
+        {!waiting && (
+          <h1 className="m-0 text-balance text-[28px] font-bold leading-[1.15] tracking-[-0.035em]">
+            {currentQuestion.baseText}{" "}
+            <span className="text-g-blue">{currentQuestion.highlightText}</span>
+          </h1>
+        )}
 
-        <p className="m-0 text-sm text-muted">{t("scoreByMatching")}</p>
+        {!waiting && <p className="m-0 text-sm text-muted">{t("scoreByMatching")}</p>}
 
-        {submitted ? (
+        {waiting ? null : submitted ? (
           <div
             role="status"
             className="mt-auto flex w-full flex-col items-center gap-2 rounded-card border border-line bg-green-soft p-5"

@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import GroupPointsModal from "../components/GroupPointsModal";
 import { ArrowIcon } from "../components/Icons";
 import MatchMap, { GROUP_STYLES } from "../components/MatchMap";
 import { GoogleBar } from "../components/Ui";
@@ -28,20 +29,13 @@ export default function ResultsPage() {
   const navigate = useNavigate();
   const { game, currentQuestion, nextRound } = useGame();
   const { t, tn } = useSettings();
-  const [nextRoundIn, setNextRoundIn] = useState(12);
 
+  const [selected, setSelected] = useState(null);
   const groups = groupAnswers(game.players);
+  const selectedIndex = groups.findIndex((g) => g.answer === selected);
+  const selectedGroup = selectedIndex >= 0 ? groups[selectedIndex] : null;
   const unanswered = game.players.filter((p) => !p.roundAnswer?.trim());
   const isLastRound = game.currentRound >= game.totalRounds;
-
-  useEffect(() => {
-    if (nextRoundIn <= 0) return;
-    const timer = window.setInterval(
-      () => setNextRoundIn((current) => Math.max(0, current - 1)),
-      1000
-    );
-    return () => window.clearInterval(timer);
-  }, [nextRoundIn]);
 
   const handleAdvance = () => {
     if (isLastRound) {
@@ -85,7 +79,7 @@ export default function ResultsPage() {
             </p>
           </div>
           <button type="button" className="btn-primary h-12" onClick={handleAdvance}>
-            {isLastRound ? t("finishGame") : t("nextQuestionIn", { n: nextRoundIn })} <ArrowIcon />
+            {isLastRound ? t("finishGame") : t("nextQuestionBtn")} <ArrowIcon />
           </button>
         </div>
 
@@ -102,8 +96,9 @@ export default function ResultsPage() {
                 className="pointer-events-none absolute -right-14 -top-20 size-72 rounded-full bg-g-yellow opacity-[.14] blur-[70px]"
               />
               <div className="relative">
-                <MatchMap groups={groups} />
+                <MatchMap groups={groups} onSelect={setSelected} />
               </div>
+              <p className="relative m-0 mt-2 text-center text-[13px] text-muted">{t("tapBubble")}</p>
             </section>
 
             <section className="card flex min-w-0 flex-[1_1_300px] flex-col gap-3 p-5">
@@ -112,7 +107,11 @@ export default function ResultsPage() {
                   const style = GROUP_STYLES[i % GROUP_STYLES.length];
                   const also = [...g.spellings].filter((s) => s !== g.answer);
                   return (
-                    <li key={g.answer} className="flex items-start gap-3 rounded-[14px] bg-field p-3">
+                    <li
+                      key={g.answer}
+                      className="flex cursor-pointer items-start gap-3 rounded-[14px] bg-field p-3 transition-colors hover:bg-chip"
+                      onClick={() => setSelected(g.answer)}
+                    >
                       <i className={`mt-1.5 size-2.5 shrink-0 rounded-full ${style.bar}`} />
                       <div className="min-w-0 flex-1">
                         <strong className="block break-words text-lg" dir="auto">
@@ -131,13 +130,25 @@ export default function ResultsPage() {
                           <span className="block text-xs text-muted">{t("awardHost")}</span>
                         )}
                       </div>
-                      <span
-                        className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                          g.points > 0 ? "bg-green-soft text-green-ink" : "bg-chip text-muted"
-                        }`}
-                      >
-                        {pointsLabel(g.points)}
-                      </span>
+                      <div className="flex shrink-0 flex-col items-end gap-1.5">
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            g.points > 0 ? "bg-green-soft text-green-ink" : "bg-chip text-muted"
+                          }`}
+                        >
+                          {pointsLabel(g.points)}
+                        </span>
+                        <button
+                          type="button"
+                          className="text-xs font-semibold text-action underline-offset-2 hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelected(g.answer);
+                          }}
+                        >
+                          {t("editPoints")}
+                        </button>
+                      </div>
                     </li>
                   );
                 })}
@@ -154,6 +165,13 @@ export default function ResultsPage() {
         )}
       </main>
       <GoogleBar />
+      {selectedGroup && (
+        <GroupPointsModal
+          group={selectedGroup}
+          styleSet={GROUP_STYLES[selectedIndex % GROUP_STYLES.length]}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 }

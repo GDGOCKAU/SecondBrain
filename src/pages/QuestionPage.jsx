@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import RoundIntro from "../components/RoundIntro";
 import PlayerAvatar from "../components/PlayerAvatar";
 import { ArrowIcon } from "../components/Icons";
 import { CountdownRing, GoogleBar, RoundProgress, SOFT_TINTS } from "../components/Ui";
@@ -71,21 +72,39 @@ function PlayerRail({ players, offset, caption, onAdjustScore, showAnswers }) {
 
 export default function QuestionPage() {
   const navigate = useNavigate();
-  const { game, timeLeft, currentQuestion, adjustScore } = useGame();
+  const { game, timeLeft, currentQuestion, adjustScore, nextRound, endRound, startRound } = useGame();
   const { t } = useSettings();
 
   const half = Math.ceil(game.players.length / 2);
   const leftPlayers = game.players.slice(0, half);
   const rightPlayers = game.players.slice(half);
   const answered = game.players.filter((p) => p.status === "answered").length;
-  const isRoundOver = timeLeft === 0;
+  const waiting = game.roundStarted === false;
+  const isRoundOver = !waiting && timeLeft === 0;
+
+  // Ends the round now and shows the results (answers are scored as if the timer ran out).
+  const handleSkip = () => {
+    endRound();
+    navigate("/results");
+  };
+
+  // Moves straight to the next question; the skipped one awards no points.
+  const handleNext = () => {
+    if (game.currentRound >= game.totalRounds) {
+      navigate("/leaderboard");
+      return;
+    }
+    nextRound();
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
       <Header>
         <span className="pill bg-blue-soft text-action">{t("room", { code: game.roomCode })}</span>
         <span className="pill border border-line bg-surface text-muted">
-          {t("questionOf", { n: game.currentRound, m: game.totalRounds })}
+          {game.totalRounds > 0
+            ? t("questionOf", { n: game.currentRound, m: game.totalRounds })
+            : t("questionN", { n: game.currentRound })}
         </span>
       </Header>
 
@@ -106,6 +125,16 @@ export default function QuestionPage() {
             aria-hidden="true"
             className="pointer-events-none absolute -right-20 -top-28 size-[360px] rounded-full bg-g-blue opacity-10 blur-[80px]"
           />
+          {waiting ? (
+            <RoundIntro
+              round={game.currentRound}
+              total={game.totalRounds}
+              hasFile={game.questions.length > 0}
+              players={game.players.length}
+              onStart={startRound}
+            />
+          ) : (
+            <>
           <CountdownRing timeLeft={timeLeft} total={game.roundTime} size={168} />
 
           {currentQuestion.category && (
@@ -131,12 +160,24 @@ export default function QuestionPage() {
               </button>
             </div>
           ) : (
-            <p className="m-0 text-lg text-muted">{t("answering", { n: game.players.length })}</p>
+            <div className="flex flex-col items-center gap-3.5">
+              <p className="m-0 text-lg text-muted">{t("answering", { n: game.players.length })}</p>
+              <div className="flex flex-wrap justify-center gap-2.5">
+                <button type="button" className="btn-outline h-11" onClick={handleNext}>
+                  {t("nextQuestionBtn")}
+                </button>
+                <button type="button" className="btn-primary h-11" onClick={handleSkip}>
+                  {t("skipQuestion")} <ArrowIcon />
+                </button>
+              </div>
+            </div>
           )}
 
           <div className="mt-2 flex w-full justify-center">
             <RoundProgress current={game.currentRound} total={game.totalRounds} />
           </div>
+            </>
+          )}
         </section>
 
         <PlayerRail

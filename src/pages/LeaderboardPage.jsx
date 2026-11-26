@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import SetSwitcher from "../components/SetSwitcher";
 import PlayerAvatar from "../components/PlayerAvatar";
-import { ReplayIcon, CheckIcon } from "../components/Icons";
+import { ReplayIcon, CheckIcon, HomeIcon } from "../components/Icons";
 import ConfettiBurst from "../components/ConfettiBurst";
 import { Glow, GoogleBar } from "../components/Ui";
 import { useGame } from "../context/GameContext";
@@ -48,14 +49,14 @@ const PLACES = {
 
 const RISE_DELAY = { first: "0s", second: "0.15s", third: "0.3s" };
 
-function PodiumPlace({ player, place }) {
+function PodiumPlace({ player, place, avatarRef }) {
   const { t } = useSettings();
   if (!player) return <div className="flex-1" />;
   const s = PLACES[place];
   return (
     <div className="flex flex-1 flex-col items-center gap-2.5">
       {place === "first" && <Crown label={t("crown")} />}
-      <div className={`${s.avatar} max-w-full`}>
+      <div ref={avatarRef} className={`${s.avatar} max-w-full`}>
         <PlayerAvatar player={player} />
       </div>
       <div>
@@ -83,6 +84,7 @@ export default function LeaderboardPage() {
   const { t } = useSettings();
   const [rematch, setRematch] = useState(false);
   const [burst, setBurst] = useState(0);
+  const winnerRef = useRef(null);
 
   const rankedPlayers = [...game.players]
     .sort((a, b) => b.score - a.score)
@@ -104,7 +106,7 @@ export default function LeaderboardPage() {
       <Glow color="#f9ab00" className="left-[22%] top-20 size-[380px] opacity-[.18]" />
       <Glow color="#4285f4" className="-bottom-16 -left-10 size-[300px] opacity-[.14]" />
 
-      <ConfettiBurst trigger={burst} />
+      <ConfettiBurst trigger={burst} originRef={winnerRef} />
 
       <Header>
         <span className="pill bg-green-soft text-green-ink">{t("gameOver")}</span>
@@ -134,7 +136,7 @@ export default function LeaderboardPage() {
 
           <div className="mt-2 flex w-full max-w-[640px] items-end justify-center gap-4">
             <PodiumPlace player={winners[1]} place="second" />
-            <PodiumPlace player={winners[0]} place="first" />
+            <PodiumPlace player={winners[0]} place="first" avatarRef={winnerRef} />
             <PodiumPlace player={winners[2]} place="third" />
           </div>
 
@@ -146,7 +148,12 @@ export default function LeaderboardPage() {
             <button type="button" className="btn-outline !h-[52px]" onClick={() => setBurst((n) => n + 1)}>
               {t("celebrate")}
             </button>
+            <button type="button" className="btn-tonal !h-[52px]" onClick={() => navigate("/")}>
+              <HomeIcon />
+              {t("homePage")}
+            </button>
           </div>
+          <SetSwitcher variant="small" />
         </section>
 
         <aside
@@ -181,17 +188,6 @@ export default function LeaderboardPage() {
               </li>
             ))}
           </ol>
-
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="mt-auto flex cursor-pointer items-center gap-1.5 self-start text-sm font-medium text-action hover:text-action-dark"
-          >
-            <span aria-hidden="true" className="rtl:rotate-180">
-              ←
-            </span>
-            {t("backLobby")}
-          </button>
         </aside>
       </main>
       <div className="relative z-10">
