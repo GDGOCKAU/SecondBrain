@@ -13,12 +13,18 @@ const FEATURES = [
   { title: "feat3Title", text: "feat3Text", bar: "bg-g-green" },
 ];
 
-export default function LandingPage() {
+function createRoomCode() {
+  return Math.random().toString(36).substring(2, 6).toUpperCase();
+}
+
+export default function LandingPage({ openHostLobby = false }) {
   const navigate = useNavigate();
   const { t } = useSettings();
   const [roomCode, setRoomCode] = useState("");
   const [showError, setShowError] = useState(false);
-  const [hostedCode, setHostedCode] = useState(null);
+  const [hostedCode, setHostedCode] = useState(() =>
+    openHostLobby ? createRoomCode() : null,
+  );
   const [scanning, setScanning] = useState(false);
 
   const handleJoin = (event) => {
@@ -34,8 +40,7 @@ export default function LandingPage() {
   };
 
   const handleHost = () => {
-    const newCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-    setHostedCode(newCode);
+    setHostedCode(createRoomCode());
     setShowError(false);
   };
 

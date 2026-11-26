@@ -35,6 +35,7 @@ export default function App() {
         <div className="relative z-10">
         <AnimatedRoutes>
           <Route path="/" element={<ResponsiveLanding />} />
+          <Route path="/admin" element={<LandingPage openHostLobby />} />
           <Route path="/join" element={<AvatarSelection />} />
           <Route path="/avatar" element={<AvatarSelection />} />
           <Route path="/player" element={<PlayerPage />} />
