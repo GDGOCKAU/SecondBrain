@@ -20,7 +20,7 @@ const NODES = [
 // Brain in the four GDG colours, wired up to pulsing nodes.
 function BrainArt() {
   return (
-    <svg viewBox="0 0 320 256" className="h-auto w-[min(320px,80%)]" aria-hidden="true">
+    <svg viewBox="0 0 320 256" className="h-[clamp(96px,24dvh,256px)] w-auto max-w-full" aria-hidden="true">
       <defs>
         <clipPath id="clip-l">
           <path d={LEFT} />
@@ -89,7 +89,7 @@ export default function RoundIntro({ round, total, players, hasFile, onStart }) 
     onStart();
   };
   return (
-    <div className="relative flex w-full flex-col items-center gap-5 text-ink">
+    <div className="relative flex w-full flex-col items-center gap-[clamp(8px,2dvh,20px)] text-ink">
       <BrainArt />
 
       {total > 0 && (
@@ -101,7 +101,7 @@ export default function RoundIntro({ round, total, players, hasFile, onStart }) 
 
       <h1
         id="question"
-        className="m-0 text-[clamp(2.75rem,6vw,5rem)] font-bold leading-[1.08] tracking-[-0.04em]"
+        className="m-0 text-[clamp(2rem,min(6vw,9dvh),5rem)] font-bold leading-[1.08] tracking-[-0.04em]"
       >
         {t("roundN", { n: round })}
         <span className="text-g-red">.</span>
@@ -111,13 +111,13 @@ export default function RoundIntro({ round, total, players, hasFile, onStart }) 
         {tn("introReadyOne", "introReadyMany", players)}
       </p>
 
-      <div className="relative mt-1">
+      <div className="relative">
         <span
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 rounded-full bg-action-fill"
           style={{ animation: "ring-out 1.8s ease-out infinite" }}
         />
-        <button type="button" className="btn-primary relative !h-16 px-14 text-xl" onClick={handleStart}>
+        <button type="button" className="btn-primary relative !h-[clamp(48px,8dvh,64px)] px-14 text-xl" onClick={handleStart}>
           {t("startQuestion")} <ArrowIcon />
         </button>
       </div>

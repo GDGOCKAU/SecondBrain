@@ -83,11 +83,15 @@
     color: var(--color-ink);
     background: var(--color-canvas);
   }
+  /* Pages are static: they fit the screen and never scroll as a whole. Long lists scroll inside their own box. */
+  html,
+  body {
+    height: 100%;
+  }
   body {
     min-width: 320px;
-    min-height: 100vh;
     margin: 0;
-    overflow-x: hidden;
+    overflow: hidden;
   }
   button,
   input {
@@ -184,6 +188,45 @@
 @keyframes ring-out {
   from { transform: scale(0.9); opacity: 0.45; }
   to { transform: scale(1.35); opacity: 0; }
+}
+
+/* New page: fades in and settles up from slightly below. No transform is kept afterwards, so fixed modals stay put. */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.page-enter {
+  animation: page-enter 0.45s ease-out backwards;
+}
+
+/* Background orbs: faint, heavily blurred, drifting slowly while the colour cycles through the four Google hues. */
+.orb {
+  opacity: 0.07;
+  filter: blur(110px);
+  will-change: transform, background-color;
+  animation:
+    orb-drift 38s ease-in-out infinite,
+    orb-hue 46s linear infinite;
+}
+.dark .orb {
+  opacity: 0.06;
+}
+.orb-b {
+  animation-duration: 44s, 52s;
+}
+.orb-c {
+  animation-duration: 50s, 58s;
+}
+@keyframes orb-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(7vw, 6vh, 0) scale(1.1); }
+  66% { transform: translate3d(-5vw, 9vh, 0) scale(0.92); }
+}
+@keyframes orb-hue {
+  0%, 100% { background-color: var(--color-g-blue); }
+  25% { background-color: var(--color-g-red); }
+  50% { background-color: var(--color-g-yellow); }
+  75% { background-color: var(--color-g-green); }
 }
 
 @media (prefers-reduced-motion: reduce) {

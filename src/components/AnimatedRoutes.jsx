@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Routes, useLocation } from "react-router-dom";
 
 const COLOR_VARS = ["--color-g-blue", "--color-g-red", "--color-g-yellow", "--color-g-green"];
-const DURATION = 240;
+const DURATION = 1000; // a calm, soft pass: fades in, draws gently, fades out
 
 function LinesOverlay({ pathname }) {
   const ref = useRef(null);
@@ -27,7 +28,7 @@ function LinesOverlay({ pathname }) {
     const style = getComputedStyle(document.documentElement);
     const colors = COLOR_VARS.map((v) => style.getPropertyValue(v).trim());
 
-    const count = Math.min(40, Math.max(16, Math.round((w * h) / 30000)));
+    const count = Math.min(12, Math.max(7, Math.round((w * h) / 110000)));
     const pts = Array.from({ length: count }, (_, i) => ({
       x: Math.random() * w,
       y: Math.random() * h,
@@ -39,7 +40,7 @@ function LinesOverlay({ pathname }) {
         .map((b, j) => ({ j, d: Math.hypot(a.x - b.x, a.y - b.y) }))
         .filter((o) => o.j > i)
         .sort((p, q) => p.d - q.d)
-        .slice(0, 2)
+        .slice(0, 1)
         .forEach((o) => edges.push([i, o.j]));
     });
 
@@ -49,14 +50,16 @@ function LinesOverlay({ pathname }) {
       c.clearRect(0, 0, w, h);
       if (t >= 1) return;
 
-      const draw = Math.min(1, t / 0.5);
-      c.globalAlpha = Math.min(1, (1 - t) * 2);
+      const raw = Math.min(1, t / 0.7);
+      const draw = 1 - (1 - raw) ** 2; // gentle ease out
+      // one smooth swell: fades in and out, never fully opaque
+      c.globalAlpha = 0.42 * Math.sin(Math.PI * t) ** 1.5;
       edges.forEach(([ai, bi], k) => {
         const a = pts[ai];
         const b = pts[bi];
         const p = Math.min(1, Math.max(0, draw * 1.4 - (k / edges.length) * 0.4));
         c.strokeStyle = a.c;
-        c.lineWidth = 1.6;
+        c.lineWidth = 1.3;
         c.beginPath();
         c.moveTo(a.x, a.y);
         c.lineTo(a.x + (b.x - a.x) * p, a.y + (b.y - a.y) * p);
@@ -65,7 +68,7 @@ function LinesOverlay({ pathname }) {
       pts.forEach((a) => {
         c.fillStyle = a.c;
         c.beginPath();
-        c.arc(a.x, a.y, 4 * Math.min(1, draw * 2), 0, Math.PI * 2);
+        c.arc(a.x, a.y, 3.2 * Math.min(1, draw * 2), 0, Math.PI * 2);
         c.fill();
       });
 
@@ -78,7 +81,12 @@ function LinesOverlay({ pathname }) {
     };
   }, [pathname]);
 
-  return <canvas ref={ref} aria-hidden="true" className="pointer-events-none fixed inset-0 z-[200] size-full" />;
+  // Portaled to <body> so it sits in the root stacking context: above the
+  // NetworkBackground (z-0) but below the page content wrapper (z-10).
+  return createPortal(
+    <canvas ref={ref} aria-hidden="true" className="pointer-events-none fixed inset-0 z-[1] size-full" />,
+    document.body,
+  );
 }
 
 export default function AnimatedRoutes({ children }) {
@@ -86,7 +94,9 @@ export default function AnimatedRoutes({ children }) {
 
   return (
     <>
-      <Routes>{children}</Routes>
+      <div key={pathname} className="page-enter">
+        <Routes>{children}</Routes>
+      </div>
       <LinesOverlay pathname={pathname} />
     </>
   );

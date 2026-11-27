@@ -81,7 +81,7 @@ export default function QuestionSetsPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex h-dvh flex-col overflow-hidden">
       <Header>
         <button type="button" className="btn-outline !h-9 !px-4 !text-[13px]" onClick={() => navigate("/")}>
           <span aria-hidden="true" className="rtl:rotate-180">
@@ -91,10 +91,10 @@ export default function QuestionSetsPage() {
         </button>
       </Header>
 
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-5 py-8 md:px-8">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+      <main className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-[clamp(8px,2dvh,24px)] px-5 py-[clamp(8px,2dvh,24px)] md:px-8">
+        <div className="flex shrink-0 flex-wrap items-end justify-between gap-3">
           <div className="flex flex-col gap-2">
-            <h1 className="m-0 text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold leading-tight tracking-[-0.04em]">
+            <h1 className="m-0 text-[clamp(1.4rem,min(3.5vw,5dvh),2.5rem)] font-bold leading-tight tracking-[-0.04em]">
               {t("setsTitle")}
             </h1>
             <p className="m-0 text-base text-muted">{t("setsSub")}</p>
@@ -117,12 +117,12 @@ export default function QuestionSetsPage() {
           </div>
         </div>
 
-        <p className={`m-0 text-[13px] ${message ? "text-red-ink" : "text-muted"}`} role={message ? "alert" : undefined}>
+        <p className={`m-0 shrink-0 text-[13px] ${message ? "text-red-ink" : "text-muted"}`} role={message ? "alert" : undefined}>
           {message || t("importHint")}
         </p>
 
-        <div className="flex flex-wrap items-start gap-6">
-          <ul className="m-0 flex min-w-0 max-w-[340px] flex-[1_1_260px] list-none flex-col gap-2 p-0">
+        <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,2fr)_minmax(0,3fr)] gap-5 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]">
+          <ul className="m-0 flex min-h-0 min-w-0 list-none flex-col gap-2 overflow-y-auto p-0">
             {sets.map((set, i) => {
               const on = set.id === selected.id;
               const tint = ["bg-blue-soft", "bg-red-soft", "bg-yellow-soft", "bg-green-soft"][i % 4];
@@ -155,9 +155,9 @@ export default function QuestionSetsPage() {
 
           <section
             aria-label={nameOf(selected)}
-            className="card flex min-w-0 flex-[999_1_460px] flex-col gap-5 p-6"
+            className="card flex min-h-0 min-w-0 flex-col gap-4 p-5"
           >
-            <div className="flex flex-wrap items-end gap-3">
+            <div className="flex shrink-0 flex-wrap items-end gap-3">
               <div className="flex min-w-[200px] flex-1 flex-col gap-1.5">
                 <label htmlFor="set-name" className="text-[13px] font-medium text-muted">
                   {t("setName")}
@@ -194,13 +194,13 @@ export default function QuestionSetsPage() {
               )}
             </div>
 
-            {readOnly && <p className="m-0 text-[13px] text-muted">{t("builtInNote")}</p>}
+            {readOnly && <p className="m-0 shrink-0 text-[13px] text-muted">{t("builtInNote")}</p>}
 
             {selected.questions.length === 0 && (
               <p className="m-0 text-sm text-muted">{t("noQuestionsYet")}</p>
             )}
 
-            <ol className="m-0 flex list-none flex-col gap-2.5 p-0">
+            <ol className="m-0 flex min-h-0 flex-1 list-none flex-col gap-2.5 overflow-y-auto p-0">
               {selected.questions.map((q, i) => (
                 <li key={q.id} className="flex flex-wrap items-center gap-2.5 rounded-[14px] bg-field p-2.5">
                   <span className="w-6 text-center text-xs font-semibold tabular-nums text-muted">
@@ -258,7 +258,7 @@ export default function QuestionSetsPage() {
             {!readOnly && (
               <button
                 type="button"
-                className="btn-tonal !h-11 self-start !px-5 !text-sm"
+                className="btn-tonal !h-11 shrink-0 self-start !px-5 !text-sm"
                 onClick={() =>
                   patchSet(selected.id, { questions: [...selected.questions, emptyQuestion()] })
                 }

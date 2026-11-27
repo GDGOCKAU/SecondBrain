@@ -6,8 +6,10 @@ import { CountdownRing, GoogleBar } from "../../components/Ui";
 import { useGame } from "../../context/GameContext";
 import { useSettings } from "../../context/SettingsContext";
 
+// The participant's screen: phone or laptop, never scrolls as a page.
+// Answers are never echoed back on screen so nobody can copy from a neighbour's device.
 export default function PlayerPage() {
-  const { game, timeLeft, currentQuestion, myPlayer, submitAnswer } = useGame();
+  const { game, timeLeft, currentQuestion, myPlayer, submitAnswer, scoresHidden } = useGame();
   const { t } = useSettings();
 
   const [answer, setAnswer] = useState(myPlayer.roundAnswer || "");
@@ -19,90 +21,107 @@ export default function PlayerPage() {
     setSubmitted(Boolean(myPlayer.roundAnswer));
   }, [game.roundEndTime, game.currentRound]);
 
+  const waiting = game.roundStarted === false;
+  const isRoundOver = timeLeft === 0 && game.roundStarted !== false;
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (!answer.trim() || submitted || timeLeft === 0 || waiting) return;
+    if (!answer.trim() || submitted || isRoundOver || waiting) return;
 
     setSubmitted(true);
     submitAnswer(answer);
   };
 
-  const isRoundOver = timeLeft === 0 && game.roundStarted !== false;
-  const waiting = game.roundStarted === false;
+  const roundLabel =
+    game.totalRounds > 0
+      ? t("qShort", { n: game.currentRound, m: game.totalRounds })
+      : t("questionN", { n: game.currentRound });
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col">
-      <Header compact>
+    <div className="mx-auto flex h-dvh w-full max-w-md flex-col overflow-hidden md:max-w-3xl">
+      <Header compact homeLink={false}>
         <span className="flex items-center gap-2">
-          <span className="size-8 shrink-0">
+          <span className="size-8 shrink-0 md:size-10">
             <PlayerAvatar player={myPlayer} />
           </span>
           <span className="text-start leading-tight">
-            <strong className="block max-w-[72px] truncate text-sm" dir="auto">
+            <strong className="block max-w-[110px] truncate text-sm md:max-w-[220px] md:text-base" dir="auto">
               {myPlayer.name}
             </strong>
-            <span className="text-xs text-muted">
-              {t("pts", { n: myPlayer.score.toLocaleString() })}
-            </span>
+            {!scoresHidden && (
+              <span className="text-xs text-muted md:text-sm">
+                {t("pts", { n: myPlayer.score.toLocaleString() })}
+              </span>
+            )}
           </span>
         </span>
-        <span className="pill !px-2.5 !py-[5px] !text-xs border border-line bg-surface text-muted">
-          {game.totalRounds > 0
-            ? t("qShort", { n: game.currentRound, m: game.totalRounds })
-            : t("questionN", { n: game.currentRound })}
+        <span className="pill !px-2.5 !py-[5px] !text-xs border border-line bg-surface text-muted md:!text-sm">
+          {roundLabel}
         </span>
       </Header>
 
-      <main className="flex flex-1 flex-col items-center gap-5 px-5 pb-5 pt-6 text-center">
-        <CountdownRing timeLeft={timeLeft} total={game.roundTime} size={120} />
+      <main className="flex min-h-0 flex-1 flex-col items-center gap-5 overflow-y-auto px-5 pb-5 pt-6 text-center md:gap-7 md:px-10 md:pt-8">
+        <div className="shrink-0 md:my-3 md:scale-125">
+          <CountdownRing timeLeft={timeLeft} total={game.roundTime} size={120} />
+        </div>
 
         {waiting && (
-          <div role="status" className="mt-auto flex w-full flex-1 flex-col items-center justify-center gap-3">
-            <span className="pill bg-blue-soft font-semibold text-action">
-              {game.totalRounds > 0
-                ? t("qShort", { n: game.currentRound, m: game.totalRounds })
-                : t("questionN", { n: game.currentRound })}
-            </span>
-            <strong className="text-[28px] leading-tight">{t("getReady")}</strong>
-            <p className="m-0 text-sm text-muted">{t("waitingStart")}</p>
+          <div role="status" className="flex w-full flex-1 flex-col items-center justify-center gap-3">
+            <span className="pill bg-blue-soft font-semibold text-action">{roundLabel}</span>
+            <strong className="text-[28px] leading-tight md:text-5xl">{t("getReady")}</strong>
+            <p className="m-0 text-sm text-muted md:text-lg">{t("waitingStart")}</p>
           </div>
         )}
 
         {!waiting && currentQuestion.category && (
-          <span className="pill !px-3 !py-[5px] !text-xs bg-yellow-soft font-semibold text-yellow-ink">
+          <span className="pill !px-3 !py-[5px] !text-xs bg-yellow-soft font-semibold text-yellow-ink md:!text-sm">
             <i className="size-[7px] rounded-full bg-g-yellow" />
             {currentQuestion.category}
           </span>
         )}
 
         {!waiting && (
-          <h1 className="m-0 text-balance text-[28px] font-bold leading-[1.15] tracking-[-0.035em]">
+          <h1 className="m-0 text-balance text-[28px] font-bold leading-[1.15] tracking-[-0.035em] md:text-5xl">
             {currentQuestion.baseText}{" "}
             <span className="text-g-blue">{currentQuestion.highlightText}</span>
           </h1>
         )}
 
-        {!waiting && <p className="m-0 text-sm text-muted">{t("scoreByMatching")}</p>}
+        {!waiting && !isRoundOver && (
+          <p className="m-0 text-sm text-muted md:text-lg">{t("scoreByMatching")}</p>
+        )}
 
-        {waiting ? null : submitted ? (
+        {isRoundOver ? (
+          // Round finished: no answer and no score here, the host reveals everything on the big screen
           <div
             role="status"
-            className="mt-auto flex w-full flex-col items-center gap-2 rounded-card border border-line bg-green-soft p-5"
+            className="mt-auto flex w-full max-w-xl flex-col items-center gap-3 rounded-card border border-line bg-surface p-5 md:p-7"
           >
-            <span className="flex size-11 items-center justify-center rounded-full bg-g-green text-page">
+            <span className="pill bg-blue-soft !py-1 !text-xs font-semibold text-action md:!text-sm">
+              {t("roundComplete", { n: String(game.currentRound).padStart(2, "0") })}
+            </span>
+            <span className="size-16 rounded-[30%] bg-blue-soft p-1 md:size-20">
+              <PlayerAvatar player={myPlayer} />
+            </span>
+            <p className="m-0 text-sm text-muted md:text-base">{t("lockedIn")}</p>
+            <p className="m-0 text-xs text-muted md:text-sm">{t("waitingHost")}</p>
+          </div>
+        ) : waiting ? null : submitted ? (
+          <div
+            role="status"
+            className="mt-auto flex w-full max-w-xl flex-col items-center gap-2 rounded-card border border-line bg-green-soft p-5 md:p-7"
+          >
+            <span className="flex size-11 items-center justify-center rounded-full bg-g-green text-page md:size-14">
               <CheckIcon size={22} />
             </span>
-            <strong className="text-[22px]" dir="auto">
-              “{answer.trim()}”
-            </strong>
-            <span className="text-sm text-green-ink">{t("lockedIn")}</span>
+            <span className="text-base font-semibold text-green-ink md:text-xl">{t("lockedIn")}</span>
           </div>
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="mt-auto flex w-full flex-col gap-3 rounded-card border border-line bg-surface p-4 text-start"
+            className="mt-auto flex w-full max-w-xl flex-col gap-3 rounded-card border border-line bg-surface p-4 text-start md:p-6"
           >
-            <label htmlFor="answer" className="text-[13px] font-medium text-muted">
+            <label htmlFor="answer" className="text-[13px] font-medium text-muted md:text-sm">
               {t("yourAnswer")}
             </label>
             <input
@@ -111,80 +130,16 @@ export default function PlayerPage() {
               value={answer}
               onChange={(event) => setAnswer(event.target.value)}
               placeholder={t("answerPlaceholder")}
-              disabled={isRoundOver}
               autoComplete="off"
-              className="field h-14 px-4 text-lg font-semibold"
+              className="field h-14 px-4 text-lg font-semibold md:h-16 md:text-2xl"
             />
-            <button
-              type="submit"
-              className="btn-primary w-full"
-              disabled={!answer.trim() || isRoundOver}
-            >
+            <button type="submit" className="btn-primary w-full" disabled={!answer.trim()}>
               {t("lockIn")}
             </button>
           </form>
         )}
       </main>
       <GoogleBar />
-
-      {isRoundOver && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="round-complete"
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 backdrop-blur-sm sm:items-center"
-        >
-          <div className="flex w-full max-w-sm flex-col items-center rounded-card border border-line bg-surface p-6 text-center shadow-hero">
-            <span
-              id="round-complete"
-              className="pill mb-4 bg-blue-soft !py-1 !text-xs font-semibold text-action"
-            >
-              {t("roundComplete", { n: String(game.currentRound).padStart(2, "0") })}
-            </span>
-
-            <span className="mb-3 size-20 rounded-[30%] bg-blue-soft p-1">
-              <PlayerAvatar player={myPlayer} />
-            </span>
-            <strong className="mb-1 text-xl" dir="auto">
-              {myPlayer.name}
-            </strong>
-
-            <p className="mb-5 mt-0 text-sm text-muted">
-              {t("yourAnswerColon")}{" "}
-              <span className="font-semibold text-ink" dir="auto">
-                {answer.trim() ? `“${answer.trim()}”` : t("noAnswer")}
-              </span>
-            </p>
-
-            <div className="mb-4 w-full rounded-panel bg-field p-4">
-              <span className="block text-xs font-semibold text-muted">{t("totalScore")}</span>
-              <strong className="block text-4xl font-bold tabular-nums">
-                {t("pts", { n: myPlayer.score.toLocaleString() })}
-              </strong>
-              <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
-                <span className="rounded-full bg-green-soft px-2.5 py-1 text-xs font-semibold text-green-ink">
-                  {t("matchPts", { n: myPlayer.matchPoints || 0 })}
-                </span>
-                {Boolean(myPlayer.hostBonus) && (
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                      myPlayer.hostBonus > 0
-                        ? "bg-blue-soft text-action"
-                        : "bg-red-soft text-red-ink"
-                    }`}
-                  >
-                    {t("hostPt", {
-                      n: myPlayer.hostBonus > 0 ? `+${myPlayer.hostBonus}` : myPlayer.hostBonus,
-                    })}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <p className="m-0 text-xs text-muted">{t("waitingHost")}</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

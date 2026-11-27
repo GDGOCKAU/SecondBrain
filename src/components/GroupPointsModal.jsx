@@ -8,7 +8,7 @@ const fmt = (n) => (n > 0 ? `+${n}` : String(n));
 
 // Host view of one answer bubble: who wrote it, and +/- points for each of them.
 export default function GroupPointsModal({ group, styleSet, onClose }) {
-  const { game, adjustScore } = useGame();
+  const { game, adjustScore, scoresHidden } = useGame();
   const { t } = useSettings();
 
   useEffect(() => {
@@ -70,9 +70,11 @@ export default function GroupPointsModal({ group, styleSet, onClose }) {
                   <strong className="block truncate" dir="auto">
                     {m.name}
                   </strong>
-                  <span className="text-xs text-muted">
-                    {t("roundPts")} {fmt(round)} · {t("totalPts")} {m.score}
-                  </span>
+                  {!scoresHidden && (
+                    <span className="text-xs text-muted">
+                      {t("roundPts")} {fmt(round)} · {t("totalPts")} {m.score}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-1.5">
                   <button

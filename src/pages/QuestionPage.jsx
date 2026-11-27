@@ -8,18 +8,19 @@ import { useGame } from "../context/GameContext";
 import { useSettings } from "../context/SettingsContext";
 
 function PlayerRail({ players, offset, caption, onAdjustScore, showAnswers }) {
+  const { scoresHidden } = useGame();
   const { t } = useSettings();
   return (
     <aside
       aria-label={t("players")}
-      className="flex max-h-[calc(100vh-8rem)] min-w-0 max-w-[300px] flex-[1_1_260px] flex-col gap-1.5 rounded-panel border border-line bg-surface p-4"
+      className="hidden min-h-0 min-w-0 flex-col gap-1.5 rounded-panel border border-line bg-surface p-4 lg:flex"
     >
       <div className="flex shrink-0 items-center justify-between px-1.5 pb-2.5 pt-1">
         <strong className="text-sm">{t("players")}</strong>
         <span className="text-xs text-muted">{caption}</span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1.5 overflow-y-auto">
+      <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto">
         {players.map((player, index) => (
           <div key={player.id} className="flex items-center gap-2.5 rounded-[14px] bg-field p-2">
             <div
@@ -37,9 +38,11 @@ function PlayerRail({ players, offset, caption, onAdjustScore, showAnswers }) {
               <strong className="block truncate text-sm" dir="auto">
                 {player.name}
               </strong>
-              <span className="text-xs tabular-nums text-muted">
-                {t("pts", { n: player.score.toLocaleString() })}
-              </span>
+              {!scoresHidden && (
+                <span className="text-xs tabular-nums text-muted">
+                  {t("pts", { n: player.score.toLocaleString() })}
+                </span>
+              )}
               {showAnswers && player.roundAnswer && (
                 <small className="block truncate text-xs text-action" dir="auto">
                   “{player.roundAnswer}”
@@ -98,7 +101,7 @@ export default function QuestionPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex h-dvh flex-col overflow-hidden">
       <Header>
         <span className="pill bg-blue-soft text-action">{t("room", { code: game.roomCode })}</span>
         <span className="pill border border-line bg-surface text-muted">
@@ -108,7 +111,7 @@ export default function QuestionPage() {
         </span>
       </Header>
 
-      <main className="flex flex-1 flex-wrap gap-6 px-8 py-6">
+      <main className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] gap-6 px-8 py-4 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)_minmax(0,280px)]">
         <PlayerRail
           players={leftPlayers}
           offset={0}
@@ -119,7 +122,7 @@ export default function QuestionPage() {
 
         <section
           aria-labelledby="question"
-          className="relative flex min-w-0 flex-[999_1_480px] flex-col items-center justify-center gap-7 overflow-hidden rounded-card border border-line bg-surface p-10 text-center"
+          className="relative flex min-h-0 min-w-0 flex-col items-center justify-center gap-[clamp(10px,2.4dvh,28px)] overflow-hidden rounded-card border border-line bg-surface p-[clamp(16px,3dvh,40px)] text-center"
         >
           <div
             aria-hidden="true"
@@ -135,7 +138,7 @@ export default function QuestionPage() {
             />
           ) : (
             <>
-          <CountdownRing timeLeft={timeLeft} total={game.roundTime} size={168} />
+          <CountdownRing timeLeft={timeLeft} total={game.roundTime} size="clamp(96px,22dvh,168px)" />
 
           {currentQuestion.category && (
             <span className="pill bg-yellow-soft font-semibold text-yellow-ink">
@@ -146,7 +149,7 @@ export default function QuestionPage() {
 
           <h1
             id="question"
-            className="m-0 max-w-[760px] text-balance text-[clamp(2.25rem,4.4vw,3.75rem)] font-bold leading-[1.08] tracking-[-0.04em]"
+            className="m-0 max-w-[760px] text-balance text-[clamp(1.6rem,min(4.4vw,6.5dvh),3.75rem)] font-bold leading-[1.08] tracking-[-0.04em]"
           >
             {currentQuestion.baseText}{" "}
             <span className="text-g-blue">{currentQuestion.highlightText}</span>
@@ -173,7 +176,7 @@ export default function QuestionPage() {
             </div>
           )}
 
-          <div className="mt-2 flex w-full justify-center">
+          <div className="flex w-full justify-center">
             <RoundProgress current={game.currentRound} total={game.totalRounds} />
           </div>
             </>

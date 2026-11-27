@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { ArrowIcon, PlusIcon } from "../components/Icons";
 import { Glow, GoogleBar } from "../components/Ui";
+import AdminGate from "../components/AdminGate";
+import { isAdmin } from "../adminAuth";
 import LobbyModal from "../components/LobbyModal";
 import QrScanner, { QrIcon } from "../components/QrScanner";
 import { useSettings } from "../context/SettingsContext";
@@ -39,26 +41,32 @@ export default function LandingPage({ openHostLobby = false }) {
     navigate(`/avatar?code=${normalizedCode}`);
   };
 
-  const handleHost = () => {
+  const hostGame = () => {
     setHostedCode(createRoomCode());
     setShowError(false);
   };
 
+  // Hosting and managing sets are admin only: ask for the password first (once per tab)
+  const [pendingAdmin, setPendingAdmin] = useState(null);
+  const withAdmin = (action) => () => (isAdmin() ? action() : setPendingAdmin(() => action));
+  const handleHost = withAdmin(hostGame);
+  const handleManageSets = withAdmin(() => navigate("/sets"));
+
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden">
+    <div className="relative flex h-dvh flex-col overflow-hidden">
       <Glow color="#4285f4" className="-right-20 -top-28 h-[420px] w-[420px] opacity-[.18]" />
       <Glow color="#34a853" className="-bottom-24 -left-16 h-80 w-80 opacity-[.16]" />
       <Glow color="#f9ab00" className="bottom-32 right-[30%] h-64 w-64 opacity-[.16]" />
 
       <Header showOrg />
 
-      <main className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-wrap items-center gap-16 px-8 pb-12 pt-16">
-        <section className="flex min-w-0 flex-[999_1_520px] flex-col gap-7">
+      <main className="relative z-10 mx-auto grid min-h-0 w-full max-w-7xl flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] items-center justify-items-center gap-10 px-8 py-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)] lg:justify-items-stretch">
+        <section className="hidden min-w-0 flex-col gap-[clamp(10px,3dvh,28px)] lg:flex">
           <span className="eyebrow">
             <i className="size-2 rounded-full bg-g-green shadow-[0_0_0_3px_var(--color-green-soft)]" />
             {t("badge")}
           </span>
-          <h1 className="m-0 text-[clamp(3.5rem,8vw,6.25rem)] font-bold leading-none tracking-[-0.045em]">
+          <h1 className="m-0 text-[clamp(2.5rem,min(8vw,13dvh),6.25rem)] font-bold leading-none tracking-[-0.045em]">
             {t("heroThink")}
             <span className="text-g-blue">.</span> {t("heroMatch")}
             <span className="text-g-red">.</span>
@@ -83,8 +91,8 @@ export default function LandingPage({ openHostLobby = false }) {
           </div>
         </section>
 
-        <section aria-labelledby="join-title" className="min-w-0 max-w-[440px] flex-[1_1_400px]">
-          <div className="flex flex-col gap-5 rounded-card border border-line bg-surface p-8 shadow-hero">
+        <section aria-labelledby="join-title" className="w-full min-w-0 max-w-[440px]">
+          <div className="flex flex-col gap-[clamp(8px,1.9dvh,20px)] rounded-card border border-line bg-surface p-[clamp(16px,3.2dvh,32px)] shadow-hero">
             <div className="flex gap-1.5" aria-hidden="true">
               <i className="size-1.5 rounded-full bg-g-blue" />
               <i className="size-1.5 rounded-full bg-g-red" />
@@ -142,7 +150,7 @@ export default function LandingPage({ openHostLobby = false }) {
             </button>
             <button
               type="button"
-              onClick={() => navigate("/sets")}
+              onClick={handleManageSets}
               className="cursor-pointer self-center text-sm font-medium text-action hover:text-action-dark"
             >
               {t("manageSets")}
@@ -151,7 +159,7 @@ export default function LandingPage({ openHostLobby = false }) {
         </section>
       </main>
 
-      <footer className="relative z-10 flex flex-wrap justify-between gap-3 px-8 py-4 text-xs text-muted">
+      <footer className="relative z-10 flex flex-wrap justify-between gap-x-3 px-8 py-2 text-xs text-muted">
         <span>{t("footerMade")}</span>
         <span dir="ltr">X @GDGoC_Team · Instagram @GDGteam_ · gdgkau.com</span>
       </footer>
@@ -166,6 +174,16 @@ export default function LandingPage({ openHostLobby = false }) {
         />
       )}
       <LobbyModal roomCode={hostedCode} onClose={() => setHostedCode(null)} />
+      {pendingAdmin && (
+        <AdminGate
+          onClose={() => setPendingAdmin(null)}
+          onUnlock={() => {
+            const action = pendingAdmin;
+            setPendingAdmin(null);
+            action();
+          }}
+        />
+      )}
     </div>
   );
 }

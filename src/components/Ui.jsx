@@ -23,34 +23,35 @@ export function Glow({ color, className = "" }) {
 
 export const SOFT_TINTS = ["bg-blue-soft", "bg-red-soft", "bg-yellow-soft", "bg-green-soft"];
 
+// `size` is a number of pixels or any CSS length (e.g. "clamp(96px,22dvh,168px)") so the ring can shrink with the screen.
 export function CountdownRing({ timeLeft, total, size = 168 }) {
   const { t } = useSettings();
   const urgent = timeLeft <= 7;
   const color = urgent ? "var(--color-g-red)" : "var(--color-g-blue)";
   const deg = (timeLeft / Math.max(1, total)) * 360;
-  const inner = size - 24;
+  const css = typeof size === "number" ? `${size}px` : size;
   return (
     <div
       role="timer"
       aria-label={t("secondsLeft", { n: timeLeft })}
       className="flex shrink-0 items-center justify-center rounded-full"
       style={{
-        width: size,
-        height: size,
+        width: css,
+        height: css,
         background: `conic-gradient(${color} ${deg}deg, var(--color-chip) 0deg)`,
       }}
     >
       <div
         className="flex flex-col items-center justify-center rounded-full bg-surface"
         style={{
-          width: inner,
-          height: inner,
+          width: `calc(${css} - 24px)`,
+          height: `calc(${css} - 24px)`,
           animation: urgent && timeLeft > 0 ? "beat 1s ease-in-out infinite" : undefined,
         }}
       >
         <strong
           className={`font-bold leading-none tracking-tight tabular-nums ${urgent ? "text-red-ink" : "text-ink"}`}
-          style={{ fontSize: size * 0.33 }}
+          style={{ fontSize: `calc(${css} * 0.33)` }}
         >
           {timeLeft}
         </strong>

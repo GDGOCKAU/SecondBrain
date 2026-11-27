@@ -4,7 +4,7 @@ const COLORS = ["#4285f4", "#ea4335", "#f9ab00", "#34a853"];
 
 // Fires a burst of Google-coloured confetti whenever `trigger` changes (and once on mount).
 // With `originRef` it erupts from behind that element (the canvas sits under the page content).
-export default function ConfettiBurst({ trigger, originRef }) {
+export default function ConfettiBurst({ trigger, originRef, className = "z-[5]" }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -65,6 +65,6 @@ export default function ConfettiBurst({ trigger, originRef }) {
   }, [trigger]);
 
   return (
-    <canvas ref={ref} aria-hidden="true" className="pointer-events-none fixed inset-0 z-[5] size-full" />
+    <canvas ref={ref} aria-hidden="true" className={`pointer-events-none fixed inset-0 size-full ${className}`} />
   );
 }

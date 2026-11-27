@@ -25,20 +25,20 @@ export default function AvatarSelection() {
   };
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col">
-      <Header compact>
+    <div className="mx-auto flex h-dvh w-full max-w-md flex-col overflow-hidden md:max-w-2xl">
+      <Header compact homeLink={false}>
         <span className="pill !px-3 !py-[5px] !text-xs bg-blue-soft text-action">
           {t("room", { code: roomCode })}
         </span>
       </Header>
 
-      <main className="flex flex-1 flex-col gap-4 px-5 pb-4 pt-5">
-        <div>
-          <h1 className="m-0 text-[30px] font-bold tracking-[-0.035em]">{t("pickPlayer")}</h1>
+      <main className="flex min-h-0 flex-1 flex-col gap-3 px-5 pb-4 pt-4 md:gap-4 md:px-8">
+        <div className="shrink-0">
+          <h1 className="m-0 text-[clamp(1.5rem,4.5dvh,1.875rem)] font-bold tracking-[-0.035em]">{t("pickPlayer")}</h1>
           <p className="m-0 mt-1 text-sm text-muted">{t("chooseFace")}</p>
         </div>
 
-        <div role="radiogroup" aria-label={t("avatars")} className="grid grid-cols-4 gap-2">
+        <div role="radiogroup" aria-label={t("avatars")} className="grid min-h-0 flex-1 auto-rows-min grid-cols-4 content-start gap-2 overflow-y-auto md:grid-cols-6">
           {AVATARS.map((avatar, i) => {
             const on = avatar.id === selectedId;
             return (
@@ -61,7 +61,7 @@ export default function AvatarSelection() {
 
         <form
           onSubmit={handleReady}
-          className="mt-auto flex flex-col gap-3 rounded-card border border-line bg-surface p-4"
+          className="mt-auto flex shrink-0 flex-col gap-3 rounded-card border border-line bg-surface p-4"
         >
           <div className="flex items-center gap-3">
             <span className="size-14 shrink-0 rounded-[30%] bg-blue-soft">

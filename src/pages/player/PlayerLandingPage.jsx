@@ -26,19 +26,19 @@ export default function PlayerLandingPage() {
   };
 
   return (
-    <div className="relative flex min-h-[100dvh] w-full flex-col overflow-hidden">
+    <div className="relative flex h-dvh w-full flex-col overflow-hidden">
       <Glow color="#4285f4" className="-right-20 -top-20 size-[260px] opacity-[.18] blur-[70px]" />
       <Glow color="#34a853" className="-left-24 bottom-28 size-[220px] opacity-[.14] blur-[70px]" />
 
       <Header compact showOrg />
 
-      <main className="relative flex flex-1 flex-col gap-6 px-6 pb-6 pt-7">
+      <main className="relative flex min-h-0 flex-1 flex-col gap-[clamp(10px,3dvh,24px)] overflow-y-auto px-6 pb-6 pt-[clamp(12px,3.5dvh,28px)]">
         <div className="flex flex-col gap-3.5">
           <span className="eyebrow !px-3 !py-[5px]">
             <i className="size-[7px] rounded-full bg-g-red shadow-[0_0_0_3px_var(--color-red-soft)]" />
             {t("tagline")}
           </span>
-          <h1 dir="ltr" className="m-0 text-start text-[56px] font-bold leading-[0.98] tracking-[-0.045em]">
+          <h1 dir="ltr" className="m-0 text-start text-[clamp(2.5rem,8dvh,3.5rem)] font-bold leading-[0.98] tracking-[-0.045em]">
             Mind
             <br />
             Sync<span className="text-g-blue">.</span>

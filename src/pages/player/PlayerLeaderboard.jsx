@@ -3,6 +3,7 @@ import PlayerAvatar from "../../components/PlayerAvatar";
 import ShareCard from "../../components/ShareCard";
 import { GoogleBar } from "../../components/Ui";
 import { useGame } from "../../context/GameContext";
+import { rankPlayers } from "../../ranking";
 import { useSettings } from "../../context/SettingsContext";
 
 const BADGES = [
@@ -15,21 +16,19 @@ export default function PlayerLeaderboard() {
   const { game, myPlayer } = useGame();
   const { t } = useSettings();
 
-  const rankedPlayers = [...game.players]
-    .sort((a, b) => b.score - a.score)
-    .map((player, index) => ({ ...player, rank: index + 1 }));
+  const rankedPlayers = rankPlayers(game.players);
 
   const me = rankedPlayers.find((p) => p.id === myPlayer.id) || rankedPlayers[0];
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col">
-      <Header compact>
+    <div className="mx-auto flex h-dvh w-full max-w-md flex-col overflow-hidden md:max-w-2xl">
+      <Header compact homeLink={false}>
         <span className="pill !px-3 !py-[5px] !text-xs bg-green-soft text-green-ink">
           {t("gameOverShort")}
         </span>
       </Header>
 
-      <main className="flex flex-1 flex-col gap-4 p-5">
+      <main className="flex min-h-0 flex-1 flex-col gap-3 p-4 md:gap-4 md:p-5">
         <section className="relative flex items-center gap-3.5 overflow-hidden rounded-card border border-line bg-surface p-5">
           <div
             aria-hidden="true"
@@ -53,7 +52,7 @@ export default function PlayerLeaderboard() {
 
         <section
           aria-labelledby="standings-title"
-          className="flex flex-1 flex-col gap-2.5 rounded-card border border-line bg-surface p-4"
+          className="flex min-h-0 flex-1 flex-col gap-2.5 rounded-card border border-line bg-surface p-4"
         >
           <div className="flex items-center justify-between px-1">
             <h2 id="standings-title" className="m-0 text-[17px] font-semibold">
@@ -61,7 +60,7 @@ export default function PlayerLeaderboard() {
             </h2>
             <span className="text-xs text-muted">{t("playersCount", { n: rankedPlayers.length })}</span>
           </div>
-          <ol className="m-0 flex list-none flex-col gap-1 p-0">
+          <ol className="m-0 flex min-h-0 flex-1 list-none flex-col gap-1 overflow-y-auto p-0">
             {rankedPlayers.map((player) => {
               const isMe = player.id === me.id;
               return (

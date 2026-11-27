@@ -266,6 +266,33 @@ export function GameProvider({ children }) {
     }));
   };
 
+  // 4b. Host drags one answer group onto another (the site missed that the answers are the same).
+  // Everyone in the dragged group takes the target's answer and match points are recalculated for everyone.
+  const mergeGroups = (playerIds, answer) => {
+    updateGame((prev) => {
+      const players = prev.players.map((p) =>
+        playerIds.includes(p.id)
+          ? { ...p, roundAnswer: answer, originalAnswer: p.originalAnswer ?? p.roundAnswer }
+          : p
+      );
+      if (!prev.roundEvaluated) return { ...prev, players };
+      return {
+        ...prev,
+        players: players.map((p) => {
+          if (!p.roundAnswer?.trim()) return p;
+          const matches = players.filter(
+            (o) => o.id !== p.id && areAnswersMatching(p.roundAnswer, o.roundAnswer)
+          ).length;
+          return {
+            ...p,
+            score: Math.max(0, p.score + matches - (p.matchPoints || 0)),
+            matchPoints: matches,
+          };
+        }),
+      };
+    });
+  };
+
   // 5. Host advances to the next round from ResultsPage
   const nextRound = () => {
     updateGame((prev) => {
@@ -309,6 +336,9 @@ export function GameProvider({ children }) {
   const myPlayer =
     game.players.find((p) => p.id === "you") || game.players[0];
 
+  // Last round: points stay secret until the final leaderboard
+  const scoresHidden = game.totalRounds > 0 && game.currentRound >= game.totalRounds;
+
   return (
     <GameContext.Provider
       value={{
@@ -316,10 +346,12 @@ export function GameProvider({ children }) {
         timeLeft,
         currentQuestion,
         myPlayer,
+        scoresHidden,
         startGame,
         registerPlayer,
         submitAnswer,
         adjustScore,
+        mergeGroups,
         nextRound,
         endRound,
         startRound,

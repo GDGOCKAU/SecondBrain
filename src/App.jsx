@@ -1,6 +1,10 @@
 import { BrowserRouter, Route } from "react-router-dom";
+import { RequireAdmin } from "./components/AdminGate";
 import AnimatedRoutes from "./components/AnimatedRoutes";
+import ErrorBoundary from "./components/ErrorBoundary";
+import ErrorPage from "./components/ErrorPage";
 import { GameProvider } from "./context/GameContext";
+import BlurOrbs from "./components/BlurOrbs";
 import NetworkBackground from "./components/NetworkBackground";
 import { SettingsProvider } from "./context/SettingsContext";
 import LandingPage from "./pages/LandingPage";
@@ -31,11 +35,20 @@ export default function App() {
     <SettingsProvider>
     <GameProvider>
       <BrowserRouter>
+        <BlurOrbs />
         <NetworkBackground />
         <div className="relative z-10">
+        <ErrorBoundary>
         <AnimatedRoutes>
-          <Route path="/" element={<ResponsiveLanding />} />
-          <Route path="/admin" element={<LandingPage openHostLobby />} />
+          <Route path="/"element={<ResponsiveLanding />} />
+          <Route
+            path="/admin"
+            element={
+              <RequireAdmin>
+                <LandingPage openHostLobby />
+              </RequireAdmin>
+            }
+          />
           <Route path="/join" element={<AvatarSelection />} />
           <Route path="/avatar" element={<AvatarSelection />} />
           <Route path="/player" element={<PlayerPage />} />
@@ -43,8 +56,17 @@ export default function App() {
           <Route path="/game" element={<QuestionPage />} />
           <Route path="/results" element={<ResultsPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
-          <Route path="/sets" element={<QuestionSetsPage />} />
+          <Route
+            path="/sets"
+            element={
+              <RequireAdmin>
+                <QuestionSetsPage />
+              </RequireAdmin>
+            }
+          />
+          <Route path="*" element={<ErrorPage kind="notFound" />} />
         </AnimatedRoutes>
+        </ErrorBoundary>
         </div>
       </BrowserRouter>
     </GameProvider>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { WhatsAppIcon, XIcon } from "./Icons";
 import { getAvatarSrc } from "./PlayerAvatar";
 import gdgLogo from "../assets/gdg-logo.png";
 import { useSettings } from "../context/SettingsContext";
@@ -33,6 +34,7 @@ export default function ShareCard({ player, rank }) {
   const { t, lang } = useSettings();
   const ref = useRef(null);
   const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -103,8 +105,9 @@ export default function ShareCard({ player, rank }) {
       c.font = `500 40px ${FONT}`;
       c.fillText(t("sharePointsLabel"), W / 2, 1160);
 
+      c.fillStyle = "#5f6570";
       c.font = `500 34px ${FONT}`;
-      c.fillText("MindSync · GDG KAU", W / 2, 1262);
+      c.fillText("MindSync · GDG KAU", W / 2, 1300);
 
       // four-colour bar
       ["#4285f4", "#ea4335", "#f9ab00", "#34a853"].forEach((col, i) => {
@@ -117,26 +120,67 @@ export default function ShareCard({ player, rank }) {
     };
   }, [player, rank, t, lang]);
 
+  const message = t("shareMessage", { n: rank, pts: player.score.toLocaleString() });
+  const getBlob = () => new Promise((resolve) => ref.current.toBlob(resolve, "image/png"));
+
+  const download = (blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "mindsync-result.png";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Phones: the system share sheet with the image and the message together.
+  // Elsewhere: save the image.
   const share = async () => {
     setBusy(true);
+    setNote("");
     try {
-      const blob = await new Promise((resolve) => ref.current.toBlob(resolve, "image/png"));
+      const blob = await getBlob();
       if (!blob) return;
       const file = new File([blob], "mindsync-result.png", { type: "image/png" });
       if (navigator.canShare?.({ files: [file] })) {
         try {
-          await navigator.share({ files: [file], title: "MindSync" });
+          await navigator.share({ files: [file], text: message, title: "MindSync" });
           return;
         } catch {
           // cancelled or failed: fall back to download
         }
       }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "mindsync-result.png";
-      a.click();
-      URL.revokeObjectURL(url);
+      download(blob);
+      setNote(t("shareSaved"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // X and WhatsApp links can only carry text, never a picture. So the image goes to the clipboard
+  // (or is saved when the browser refuses) and the post opens with the message already written.
+  const shareTo = async (kind) => {
+    setBusy(true);
+    setNote("");
+    // opened inside the click so popup blockers allow it; pointed at the app once the image is ready
+    const win = window.open("", "_blank");
+    if (win) win.opener = null;
+    try {
+      const blob = await getBlob();
+      let status = "shareSaved";
+      if (blob) {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+          status = "shareCopied";
+        } catch {
+          download(blob);
+        }
+      }
+      const text = encodeURIComponent(message);
+      const url =
+        kind === "x" ? `https://twitter.com/intent/tweet?text=${text}` : `https://wa.me/?text=${text}`;
+      if (win) win.location.href = url;
+      else window.open(url, "_blank", "noopener");
+      setNote(t(status));
     } finally {
       setBusy(false);
     }
@@ -145,20 +189,37 @@ export default function ShareCard({ player, rank }) {
   return (
     <section
       aria-labelledby="share-title"
-      className="flex flex-col items-center gap-3 rounded-card border border-line bg-surface p-4"
+      className="flex items-center gap-3 rounded-card border border-line bg-surface p-3"
     >
-      <h2 id="share-title" className="m-0 self-start px-1 text-[17px] font-semibold">
-        {t("shareCardTitle")}
-      </h2>
       <canvas
         ref={ref}
         role="img"
         aria-label={t("shareCardTitle")}
-        className="aspect-[4/5] w-full max-w-[300px] rounded-2xl border border-line"
+        className="aspect-[4/5] w-24 shrink-0 rounded-xl border border-line md:w-28"
       />
-      <button type="button" className="btn-primary w-full" onClick={share} disabled={busy}>
-        {t("shareSave")}
-      </button>
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <h2 id="share-title" className="m-0 text-[15px] font-semibold">
+          {t("shareCardTitle")}
+        </h2>
+        <div className="grid grid-cols-2 gap-2">
+          <button type="button" className="btn-primary !h-11 !px-3 text-sm" onClick={() => shareTo("whatsapp")} disabled={busy}>
+            <WhatsAppIcon />
+            {t("shareWhatsApp")}
+          </button>
+          <button type="button" className="btn-primary !h-11 !px-3 text-sm" onClick={() => shareTo("x")} disabled={busy}>
+            <XIcon />
+            {t("shareX")}
+          </button>
+        </div>
+        <button type="button" className="btn-outline !h-10 text-sm" onClick={share} disabled={busy}>
+          {t("shareSave")}
+        </button>
+        {note && (
+          <p role="status" className="m-0 text-xs text-muted">
+            {note}
+          </p>
+        )}
+      </div>
     </section>
   );
 }
