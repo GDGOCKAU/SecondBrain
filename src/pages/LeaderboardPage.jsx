@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import PlayerAvatar from "../components/PlayerAvatar";
@@ -7,6 +7,7 @@ import ConfettiBurst from "../components/ConfettiBurst";
 import { Glow, GoogleBar } from "../components/Ui";
 import BrainCrown from "../components/BrainCrown";
 import WinnerReveal from "../components/WinnerReveal";
+import FinalReveal from "../components/FinalReveal";
 import { useGame } from "../context/GameContext";
 import { rankPlayers } from "../ranking";
 import { useSettings } from "../context/SettingsContext";
@@ -123,7 +124,7 @@ const ROW_TINTS = ["bg-yellow-soft", "bg-blue-soft", "bg-green-soft"];
 
 export default function LeaderboardPage() {
   const navigate = useNavigate();
-  const { game, startGame } = useGame();
+  const { game, startGame, finishGame, revealResults } = useGame();
   const { t } = useSettings();
   const [rematch, setRematch] = useState(false);
   const [burst, setBurst] = useState(0);
@@ -133,6 +134,20 @@ export default function LeaderboardPage() {
   // players on each podium place (several when scores tie)
   const place = (rank) => rankedPlayers.filter((p) => p.rank === rank);
   const [revealing, setRevealing] = useState(null); // the group being revealed one by one
+  // The big show (countdown, 3rd, 2nd, champion) plays first; the podium appears once it is over.
+  // Skipped after a refresh once the result is already out.
+  const [showFinal, setShowFinal] = useState(() => !game.resultsRevealed);
+  const finishReveal = useCallback(() => {
+    revealResults();
+    setShowFinal(false);
+    setBurst((n) => n + 1);
+  }, [revealResults]);
+
+  // Phones switch to "the result is on the big screen" while the show plays
+  useEffect(() => {
+    finishGame();
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- once, when the host opens this page
+  }, []);
 
   const handlePlayAgain = () => {
     setRematch(true);
@@ -149,7 +164,7 @@ export default function LeaderboardPage() {
       <Glow color="#f9ab00" className="left-[22%] top-20 size-[380px] opacity-[.18]" />
       <Glow color="#4285f4" className="-bottom-16 -left-10 size-[300px] opacity-[.14]" />
 
-      <ConfettiBurst trigger={burst} originRef={winnerRef} />
+      {!showFinal && <ConfettiBurst trigger={burst} originRef={winnerRef} />}
 
       <Header>
         <span className="pill bg-green-soft text-green-ink">{t("gameOver")}</span>
@@ -157,7 +172,9 @@ export default function LeaderboardPage() {
 
       {/* A grid with a fixed-height row: the standings box is always exactly as tall as the free space,
           so the page never scrolls and only the list inside the box does. */}
-      <main className="relative z-10 mx-auto grid min-h-0 w-full max-w-7xl flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-6 px-8 py-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:grid-rows-[minmax(0,1fr)] lg:gap-8">
+      <main
+        key={showFinal ? "hidden" : "shown"}
+        className="relative z-10 mx-auto grid min-h-0 w-full max-w-7xl flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-6 px-8 py-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:grid-rows-[minmax(0,1fr)] lg:gap-8">
         <section
           aria-labelledby="winner-title"
           className="flex min-h-0 min-w-0 flex-col text-center"
@@ -244,6 +261,7 @@ export default function LeaderboardPage() {
         <GoogleBar />
       </div>
 
+      {showFinal && <FinalReveal ranked={rankedPlayers} onChampion={revealResults} onDone={finishReveal} />}
       {revealing && <WinnerReveal winners={revealing} onClose={() => setRevealing(null)} />}
     </div>
   );

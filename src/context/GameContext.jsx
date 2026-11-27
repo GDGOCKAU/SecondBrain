@@ -56,6 +56,8 @@ function loadInitialState() {
     roundEndTime: null, // set when the host presses Start on a question
     roundStarted: false,
     roundEvaluated: false,
+    gameOver: false, // host moved to the final leaderboard
+    resultsRevealed: false, // the final show reached the champion: phones may now show each player's result
     questions: [], // no file chosen yet: the host picks one after creating the room
     setId: null,
     setName: "",
@@ -191,6 +193,8 @@ export function GameProvider({ children }) {
       roundEndTime: null,
       roundStarted: false,
       roundEvaluated: false,
+      gameOver: false,
+      resultsRevealed: false,
       players: prev.players.map((p) => ({
         ...p,
         matchPoints: 0,
@@ -315,6 +319,8 @@ export function GameProvider({ children }) {
         roundEndTime: null,
         roundStarted: false,
         roundEvaluated: false,
+        gameOver: false,
+        resultsRevealed: false,
         players: prev.players.map((p) => ({
           ...p,
           matchPoints: 0,
@@ -324,6 +330,16 @@ export function GameProvider({ children }) {
         })),
       };
     });
+  };
+
+  // 6. Host opens the final leaderboard: phones switch to "the result is on the big screen"
+  const finishGame = () => {
+    updateGame((prev) => (prev.gameOver ? prev : { ...prev, gameOver: true, resultsRevealed: false }));
+  };
+
+  // 7. The final show reached the champion: every phone now shows that player's own result
+  const revealResults = () => {
+    updateGame((prev) => (prev.resultsRevealed ? prev : { ...prev, gameOver: true, resultsRevealed: true }));
   };
 
   const { lang } = useSettings();
@@ -353,6 +369,8 @@ export function GameProvider({ children }) {
         adjustScore,
         mergeGroups,
         nextRound,
+        finishGame,
+        revealResults,
         endRound,
         startRound,
         queueQuestionSet,

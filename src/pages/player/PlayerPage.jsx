@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import PlayerAvatar from "../../components/PlayerAvatar";
 import { CheckIcon } from "../../components/Icons";
@@ -9,8 +10,14 @@ import { useSettings } from "../../context/SettingsContext";
 // The participant's screen: phone or laptop, never scrolls as a page.
 // Answers are never echoed back on screen so nobody can copy from a neighbour's device.
 export default function PlayerPage() {
-  const { game, timeLeft, currentQuestion, myPlayer, submitAnswer, scoresHidden } = useGame();
+  const { game, timeLeft, currentQuestion, myPlayer, submitAnswer } = useGame();
   const { t } = useSettings();
+  const navigate = useNavigate();
+
+  // The big screen has revealed the champion: show this player their own result
+  useEffect(() => {
+    if (game.resultsRevealed) navigate("/player/leaderboard", { replace: true });
+  }, [game.resultsRevealed, navigate]);
 
   const [answer, setAnswer] = useState(myPlayer.roundAnswer || "");
   const [submitted, setSubmitted] = useState(Boolean(myPlayer.roundAnswer));
@@ -23,6 +30,7 @@ export default function PlayerPage() {
 
   const waiting = game.roundStarted === false;
   const isRoundOver = timeLeft === 0 && game.roundStarted !== false;
+  const finalShow = game.gameOver && !game.resultsRevealed;
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -48,11 +56,6 @@ export default function PlayerPage() {
             <strong className="block max-w-[110px] truncate text-sm md:max-w-[220px] md:text-base" dir="auto">
               {myPlayer.name}
             </strong>
-            {!scoresHidden && (
-              <span className="text-xs text-muted md:text-sm">
-                {t("pts", { n: myPlayer.score.toLocaleString() })}
-              </span>
-            )}
           </span>
         </span>
         <span className="pill !px-2.5 !py-[5px] !text-xs border border-line bg-surface text-muted md:!text-sm">
@@ -61,11 +64,13 @@ export default function PlayerPage() {
       </Header>
 
       <main className="flex min-h-0 flex-1 flex-col items-center gap-5 overflow-y-auto px-5 pb-5 pt-6 text-center md:gap-7 md:px-10 md:pt-8">
-        <div className="shrink-0 md:my-3 md:scale-125">
-          <CountdownRing timeLeft={timeLeft} total={game.roundTime} size={120} />
-        </div>
+        {!finalShow && (
+          <div className="shrink-0 md:my-3 md:scale-125">
+            <CountdownRing timeLeft={timeLeft} total={game.roundTime} size={120} />
+          </div>
+        )}
 
-        {waiting && (
+        {waiting && !finalShow && (
           <div role="status" className="flex w-full flex-1 flex-col items-center justify-center gap-3">
             <span className="pill bg-blue-soft font-semibold text-action">{roundLabel}</span>
             <strong className="text-[28px] leading-tight md:text-5xl">{t("getReady")}</strong>
@@ -73,25 +78,41 @@ export default function PlayerPage() {
           </div>
         )}
 
-        {!waiting && currentQuestion.category && (
+        {!waiting && !finalShow && currentQuestion.category && (
           <span className="pill !px-3 !py-[5px] !text-xs bg-yellow-soft font-semibold text-yellow-ink md:!text-sm">
             <i className="size-[7px] rounded-full bg-g-yellow" />
             {currentQuestion.category}
           </span>
         )}
 
-        {!waiting && (
+        {!waiting && !finalShow && (
           <h1 className="m-0 text-balance text-[28px] font-bold leading-[1.15] tracking-[-0.035em] md:text-5xl">
             {currentQuestion.baseText}{" "}
             <span className="text-g-blue">{currentQuestion.highlightText}</span>
           </h1>
         )}
 
-        {!waiting && !isRoundOver && (
+        {!waiting && !finalShow && !isRoundOver && (
           <p className="m-0 text-sm text-muted md:text-lg">{t("scoreByMatching")}</p>
         )}
 
-        {isRoundOver ? (
+        {finalShow ? (
+          // The host is playing the final show: keep the suspense, the phone follows when the champion appears
+          <div role="status" className="flex w-full flex-1 flex-col items-center justify-center gap-4">
+            <span className="pill bg-yellow-soft font-semibold text-yellow-ink">{t("revealEyebrow")}</span>
+            <strong className="text-[28px] leading-tight md:text-5xl">{t("revealTitle")}</strong>
+            <p className="m-0 text-sm text-muted md:text-lg">{t("finalOnBigScreen")}</p>
+            <div className="mt-2 flex gap-2.5" aria-hidden="true">
+              {["#4285f4", "#ea4335", "#f9ab00", "#34a853"].map((c, i) => (
+                <i
+                  key={c}
+                  className="size-3 rounded-full"
+                  style={{ backgroundColor: c, animation: `drum 0.5s ease-in-out ${i * 0.12}s infinite alternate` }}
+                />
+              ))}
+            </div>
+          </div>
+        ) : isRoundOver ? (
           // Round finished: no answer and no score here, the host reveals everything on the big screen
           <div
             role="status"

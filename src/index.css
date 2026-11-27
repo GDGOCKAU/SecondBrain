@@ -190,6 +190,34 @@
   to { transform: scale(1.35); opacity: 0; }
 }
 
+/* Final reveal */
+@keyframes pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+@keyframes count-pop {
+  0% { transform: scale(2.2); opacity: 0; }
+  25% { transform: scale(1); opacity: 1; }
+  80% { transform: scale(0.92); opacity: 1; }
+  100% { transform: scale(0.7); opacity: 0; }
+}
+@keyframes drum {
+  from { transform: translateY(0) scale(1); }
+  to { transform: translateY(-14px) scale(1.2); }
+}
+@keyframes crown-drop {
+  from { transform: translateY(-60px) rotate(-12deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes rays-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes reveal-bar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
 /* New page: fades in and settles up from slightly below. No transform is kept afterwards, so fixed modals stay put. */
 @keyframes page-enter {
   from { opacity: 0; transform: translateY(8px); }

@@ -7,8 +7,8 @@ import { CountdownRing, GoogleBar, RoundProgress, SOFT_TINTS } from "../componen
 import { useGame } from "../context/GameContext";
 import { useSettings } from "../context/SettingsContext";
 
+// Running totals stay hidden for the whole game: they are only revealed on the final leaderboard.
 function PlayerRail({ players, offset, caption, onAdjustScore, showAnswers }) {
-  const { scoresHidden } = useGame();
   const { t } = useSettings();
   return (
     <aside
@@ -38,11 +38,6 @@ function PlayerRail({ players, offset, caption, onAdjustScore, showAnswers }) {
               <strong className="block truncate text-sm" dir="auto">
                 {player.name}
               </strong>
-              {!scoresHidden && (
-                <span className="text-xs tabular-nums text-muted">
-                  {t("pts", { n: player.score.toLocaleString() })}
-                </span>
-              )}
               {showAnswers && player.roundAnswer && (
                 <small className="block truncate text-xs text-action" dir="auto">
                   “{player.roundAnswer}”

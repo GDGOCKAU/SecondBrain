@@ -74,11 +74,12 @@ export default function ResultsPage() {
               {t("greatMinds")}
             </h1>
             <p className="m-0 text-base text-muted">
-              “{`${currentQuestion.baseText} ${currentQuestion.highlightText}`.trim()}” · {t("eachMatch")}
+              “{`${currentQuestion.baseText} ${currentQuestion.highlightText}`.trim()}”
+              {!scoresHidden && ` · ${t("eachMatch")}`}
             </p>
           </div>
           <button type="button" className="btn-primary h-12" onClick={handleAdvance}>
-            {isLastRound ? t("finishGame") : t("nextQuestionBtn")} <ArrowIcon />
+            {isLastRound ? t("showFinalResult") : t("nextQuestionBtn")} <ArrowIcon />
           </button>
         </div>
 

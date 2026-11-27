@@ -72,7 +72,7 @@ export default function GroupPointsModal({ group, styleSet, onClose }) {
                   </strong>
                   {!scoresHidden && (
                     <span className="text-xs text-muted">
-                      {t("roundPts")} {fmt(round)} · {t("totalPts")} {m.score}
+                      {t("roundPts")} {fmt(round)}
                     </span>
                   )}
                 </div>
